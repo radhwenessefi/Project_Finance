@@ -1,0 +1,37 @@
+<div class="container">
+    <h1>Let's see our prediction for 1 year</h1>
+    
+    <div class="prediction-value">
+      <h3>Prediction Value: <span>{{ prectionValue }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Result Potential Profit: <span>{{ resultpotentialProfit }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Investment Amount: <span>{{ investmentAmountresult }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Return on Investment: <span>{{ ROI }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Stop Loss: <span>{{ stopLoss }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Take Profit: <span>{{ takeProfit }}</span></h3>
+    </div>
+  
+    <div class="prediction-value">
+      <h3>Risk Percentage of Investment: <span>{{ riskPercentage }}</span></h3>
+    </div>
+    
+    <div class="flex">
+      <span class="flex-grow"></span>
+      <button class="cancel-btn" type="button" (click)="dialogRef.close(false)">Cancel</button>
+    </div>
+  </div>
+  

@@ -1,0 +1,45 @@
+<div class="p-4">
+  <h1 class="text-lg mb-4">Create a New Order</h1>
+  
+  <form [formGroup]="itemForm" (ngSubmit)="submit()">
+    <div class="flex flex-wrap flex-col md:flex-row">
+      <div class="w-full md:w-1/2 pr-16">
+        <mat-form-field class="full-width">
+          <input matInput type="number" name="amount" 
+          [formControl]="itemForm.controls['amount']" 
+          placeholder="Amount">
+        </mat-form-field>
+      </div>
+
+      <div class="w-full md:w-1/2 pr-16">
+        <mat-form-field class="full-width">
+          <input matInput type="number" name="takeProfit"
+           [formControl]="itemForm.controls['takeProfit']"
+            placeholder="Take Profit">
+        </mat-form-field>
+      </div>
+
+      <div class="w-full md:w-1/2 pr-16">
+        <mat-form-field class="full-width">
+          <input matInput type="number" name="stopLoss"
+           [formControl]="itemForm.controls['stopLoss']" 
+           placeholder="Stop Loss">
+        </mat-form-field>
+      </div>
+
+      <div class="w-full md:w-1/2 pr-16">
+        <mat-form-field class="full-width">
+          <select matNativeControl name="orderType" formControlName="orderType">
+            <option value="buy">buy</option>
+            <option value="sell">sell</option>
+          </select>
+        </mat-form-field>
+      </div>
+      <div class="flex w-full mt-4">
+        <button mat-raised-button class="m-2" color="primary"[disabled]="!itemForm.valid" >Save</button>
+        <span class="flex-grow"></span>
+        <button mat-button color="warn" type="button" (click)="dialogRef.close(false)">Cancel</button>
+      </div>
+    </div>
+  </form>
+</div>
