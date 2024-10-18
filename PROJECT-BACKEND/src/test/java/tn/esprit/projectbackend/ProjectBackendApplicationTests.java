@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
+import tn.esprit.projectbackend.Entity.Actions;
 import tn.esprit.projectbackend.Entity.Portfolio;
 import tn.esprit.projectbackend.Entity.Pridect;
+import tn.esprit.projectbackend.Service.ActionsServiceImp;
 import tn.esprit.projectbackend.Service.IPortfolioService;
 import tn.esprit.projectbackend.Service.PortfolioServiceImp;
 import org.junit.jupiter.api.Test;
@@ -18,14 +20,23 @@ import java.util.List;
 @Slf4j
 class ProjectBackendApplicationTests {
 	private PortfolioServiceImp yourServiceClass ;
+	private ActionsServiceImp yourActionsServiceClass ;
 	@Autowired
 	IPortfolioService portfolioService;
+	@Autowired
+	private ActionsServiceImp actionsService;
+
 
 	@Test
 	public void testFetchDataFromApi() {
 		List<Portfolio> result = portfolioService.fetchDataFromApi();
 		Assertions.assertNotNull(result);
 
+	}
+	@Test
+	public void getRealTimeAction() {
+		Actions result = actionsService.getRealTimeAction("AAPL");
+		Assertions.assertNotNull(result);
 	}
 //	@Test
 //	public void testFetchDataFromApi1(){
