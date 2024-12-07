@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate; // Pour gérer les dates modernes
+
 @Entity
 @Getter
 @Setter
@@ -20,4 +22,7 @@ public class TrainingSession {
     String sessionType;
     String location;
     int maxParticipants;
+
+    // Ajout d'un champ pour représenter la date de la session
+    LocalDate sessionDate;
 }

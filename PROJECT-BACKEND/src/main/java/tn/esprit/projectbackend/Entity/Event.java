@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate; // Import pour utiliser les dates modernes
+
 @Entity
 @Getter
 @Setter
@@ -16,13 +18,13 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String eventTitle;
-
+    String eventTitle; 
     // Utilisation de l'énumération pour le type d'événement
     @Enumerated(EnumType.STRING)
     EventType eventType;
 
     String location;
 
-    // Autres attributs comme la date, etc.
+    // Ajout d'une date pour l'événement
+    LocalDate eventDate;
 }

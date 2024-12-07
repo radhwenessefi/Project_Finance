@@ -14,21 +14,25 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
+    // Créer un événement
     public Event createEvent(Event event) {
-        validateEvent(event);  // Appel des contrôles de saisie avant la création
+        validateEvent(event);  // Validation des champs avant la création
         return eventRepository.save(event);
     }
 
+    // Récupérer tous les événements
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+        return eventRepository.findAll();  // Appelle findAll() de JpaRepository
     }
 
+    // Récupérer un événement par ID
     public Optional<Event> getEventById(Long id) {
-        return eventRepository.findById(id);
+        return eventRepository.findById(id); // Appelle findById() pour un événement spécifique
     }
 
+    // Mettre à jour un événement
     public Event updateEvent(Long id, Event updatedEvent) {
-        validateEvent(updatedEvent);  // Appel des contrôles de saisie avant la mise à jour
+        validateEvent(updatedEvent); // Validation des champs avant la mise à jour
         Optional<Event> existingEvent = eventRepository.findById(id);
         if (existingEvent.isPresent()) {
             Event event = existingEvent.get();
@@ -40,42 +44,27 @@ public class EventService {
         return null;
     }
 
+    // Supprimer un événement par ID
     public void deleteEvent(Long id) {
-        eventRepository.deleteById(id);
+        eventRepository.deleteById(id); // Supprime l'événement par ID
     }
 
-    // --- Méthodes de validation ---
-
-    // Valider les champs d'un événement avant la sauvegarde ou la mise à jour
+    // --- Méthodes de validation --- //
     private void validateEvent(Event event) {
-        // Validation du titre de l'événement (non vide et au moins 3 caractères)
         if (event.getEventTitle() == null || event.getEventTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Le titre de l'événement est obligatoire.");
         }
-
         if (event.getEventTitle().length() < 3) {
             throw new IllegalArgumentException("Le titre de l'événement doit comporter au moins 3 caractères.");
         }
-
-        // Validation du type d'événement (non vide)
         if (event.getEventType() == null) {
             throw new IllegalArgumentException("Le type de l'événement est obligatoire.");
         }
-
-
-
-        // Validation du lieu de l'événement (non vide et longueur max 100 caractères)
         if (event.getLocation() == null || event.getLocation().trim().isEmpty()) {
             throw new IllegalArgumentException("Le lieu de l'événement est obligatoire.");
         }
-
         if (event.getLocation().length() > 100) {
             throw new IllegalArgumentException("Le lieu de l'événement ne doit pas dépasser 100 caractères.");
         }
-
-        // Ici, tu pourrais ajouter une validation pour t'assurer que l'événement a une date future, si applicable.
-        // if (event.getEventDate().isBefore(LocalDate.now())) {
-        //     throw new IllegalArgumentException("La date de l'événement doit être dans le futur.");
-        // }
     }
 }

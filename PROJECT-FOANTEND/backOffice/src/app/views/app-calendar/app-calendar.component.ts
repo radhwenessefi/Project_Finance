@@ -8,6 +8,8 @@ import { EgretCalendarEvent } from '../../shared/models/event.model';
 import { AppCalendarService } from './app-calendar.service';
 import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
 import { AppConfirmService } from '../../shared/services/app-confirm/app-confirm.service';
+import { EventService } from '../../services/event.service';  // Import EventService
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-calendar',
@@ -21,29 +23,15 @@ export class AppCalendarComponent implements OnInit {
   private dialogRef: MatDialogRef<CalendarFormDialogComponent>;
   public activeDayIsOpen: boolean = true;
   public refresh: Subject<any> = new Subject();
-  public events: EgretCalendarEvent[];
+  public events: CalendarEvent[] = [];
   private actions: CalendarEventAction[];
 
   constructor(
-    public dialog: MatDialog,
-    private calendarService: AppCalendarService,
-    private confirmService: AppConfirmService
-  ) {
-    this.actions = [
-      {
-        label: '<i class="material-icons icon-sm">edit</i>',
-        onClick: ({ event }: { event: CalendarEvent }): void => {
-          this.handleEvent('edit', event);
-        },
-      },
-      {
-        label: '<i class="material-icons icon-sm">close</i>',
-        onClick: ({ event }: { event: CalendarEvent }): void => {
-          this.removeEvent(event);
-        },
-      },
-    ];
-  }
+    private eventService: EventService, // Inject EventService
+    private router: Router,
+    public dialog: MatDialog,  // Inject MatDialog
+    private confirmService: AppConfirmService,  // Inject AppConfirmService
+  ) {}
 
   ngOnInit() {
     this.loadEvents();
@@ -57,27 +45,21 @@ export class AppCalendarComponent implements OnInit {
   }
 
   public loadEvents() {
-    this.calendarService.getEvents().subscribe((events: CalendarEvent[]) => {
-      this.events = this.initEvents(events);
-    });
+    this.eventService.getAllEvents().subscribe(
+      (events: any[]) => {
+        this.events = events.map(event => ({
+          title: event.eventTitle,  // Display the event title
+          start: new Date(event.eventDate),  // Assuming your API provides a startDate
+          type: event.eventType, // Assuming your API provides an endDate
+          // Add other necessary event properties here
+        }));
+      },
+      (error) => {
+        console.error('Error fetching events:', error);  // Handle errors
+      }
+    );
   }
 
-  public removeEvent(event) {
-    this.confirmService
-      .confirm({
-        title: 'Delete Event?',
-      })
-      .subscribe((res) => {
-        if (!res) {
-          return;
-        }
-
-        this.calendarService.deleteEvent(event._id).subscribe((events) => {
-          this.events = this.initEvents(events);
-          this.refresh.next(1);
-        });
-      });
-  }
 
   public addEvent() {
     this.dialogRef = this.dialog.open(CalendarFormDialogComponent, {
@@ -94,57 +76,29 @@ export class AppCalendarComponent implements OnInit {
       }
       let dialogAction = res.action;
       let responseEvent = res.event;
-      this.calendarService.addEvent(responseEvent).subscribe((events) => {
+      this.eventService.createEvent(responseEvent).subscribe((events) => {
         this.events = this.initEvents(events);
         this.refresh.next(true);
       });
     });
   }
 
-  public handleEvent(action: string, event: EgretCalendarEvent): void {
-    // console.log(event)
-    this.dialogRef = this.dialog.open(CalendarFormDialogComponent, {
-      panelClass: 'calendar-form-dialog',
-      data: { event, action },
-      width: '450px',
-    });
+  public removeEvent(event) {
+    this.confirmService
+      .confirm({
+        title: 'Delete Event?',
+      })
+      .subscribe((res) => {
+        if (!res) {
+          return;
+        }
 
-    this.dialogRef.afterClosed().subscribe((res) => {
-      if (!res) {
-        return;
-      }
-      let dialogAction = res.action;
-      let responseEvent = res.event;
-
-      if (dialogAction === 'save') {
-        this.calendarService.updateEvent(responseEvent).subscribe((events) => {
+        this.eventService.deleteEvent(event.id).subscribe((events) => {  // Update to eventService
           this.events = this.initEvents(events);
           this.refresh.next(1);
         });
-      } else if (dialogAction === 'delete') {
-        this.removeEvent(event);
-      }
-    });
+      });
   }
 
-  public dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
-    if (isSameMonth(date, this.viewDate)) {
-      if ((isSameDay(this.viewDate, date) && this.activeDayIsOpen === true) || events.length === 0) {
-        this.activeDayIsOpen = false;
-      } else {
-        this.activeDayIsOpen = true;
-        this.viewDate = date;
-      }
-    }
-  }
 
-  public eventTimesChanged({ event, newStart, newEnd }: CalendarEventTimesChangedEvent): void {
-    event.start = newStart;
-    event.end = newEnd;
-
-    this.calendarService.updateEvent(event).subscribe((events) => {
-      this.events = this.initEvents(events);
-      this.refresh.next(1);
-    });
-  }
 }

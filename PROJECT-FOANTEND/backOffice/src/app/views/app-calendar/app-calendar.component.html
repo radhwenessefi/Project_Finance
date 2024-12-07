@@ -68,11 +68,8 @@
         *ngSwitchCase="'month'"
         [viewDate]="viewDate"
         [events]="events"
-        [refresh]="refresh"
-        [activeDayIsOpen]="activeDayIsOpen"
-        (dayClicked)="dayClicked($event.day)"
         (eventClicked)="handleEvent('edit', $event.event)"
-        (eventTimesChanged)="eventTimesChanged($event)">
+>
       </mwl-calendar-month-view>
       <mwl-calendar-week-view
         *ngSwitchCase="'week'"

@@ -51,7 +51,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       }
     }),
     InMemoryWebApiModule.forRoot(InMemoryDataService, { passThruUnknownUrl: true }),
-    RouterModule.forRoot(rootRouterConfig, { useHash: false })
+    RouterModule.forRoot(rootRouterConfig, { useHash: false }),
   ],
   declarations: [AppComponent],
   providers: [
