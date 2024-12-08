@@ -6,10 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tn.esprit.projectbackend.Entity.Portfolio;
 import tn.esprit.projectbackend.Entity.PortfolioInvestment;
+import tn.esprit.projectbackend.Entity.User;
 import tn.esprit.projectbackend.Repository.ProInvestmentRepository;
 import tn.esprit.projectbackend.Repository.PortfolioRepository;
+import tn.esprit.projectbackend.Repository.UserRepository;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -17,35 +23,53 @@ public class PorInvesmentImp implements IProInvestment {
     @Autowired
     private ProInvestmentRepository proInvestmentRepository;
 
-
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private PortfolioRepository portfolioRepository;
 
-    public void addPortfolioInvestment(PortfolioInvestment p,Long userId, Long portfolioId) {
-//        try {
-//
-//            Portfolio portfolio = portfolioRepository.findById(portfolioId).get();
-//            log.info("aaaaaaaaaaaaaaaaaaaa"+portfolio);
-//            User user1 = userRepository.findById(userId).get();
-//
-//            p.setUsersportfolio(user1);
-//            p.setPortfolios(portfolio);
-//
-//            List<PortfolioInvestment> portfolioInvestmentsuser = proInvestmentRepository.findByUsersportfolio(p.getUsersportfolio());
-//            List<PortfolioInvestment> portfolioInvestments = proInvestmentRepository.findByPortfolios(p.getPortfolios());
-//            if (!portfolioInvestmentsuser.isEmpty() && !portfolioInvestments.isEmpty()) {
-//                PortfolioInvestment portfolioInvestment = portfolioInvestments.get(0); // Assuming you want to use the first result
-//                portfolioInvestment.setAmount(p.getAmount() + portfolioInvestment.getAmount());
-//                proInvestmentRepository.save(portfolioInvestment);
-//            } else {
-//                proInvestmentRepository.save(p);
-//            }
-//        } catch (Exception e) {
-//
-//            e.printStackTrace();
-//        }
+    public void addPortfolioInvestment(PortfolioInvestment p, Long userId, Long cluster_label) {
+        try {
+            // Fetch portfolios by cluster_label
+            List<Portfolio> portfolioList = portfolioRepository.findByClusterLabels(cluster_label);
+            log.info("Fetched portfolios: " + portfolioList);
+
+            // Fetch the user
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User with ID " + userId + " not found"));
+
+            // Set the user to the investment
+            p.setUsersportfolio(user);
+            p.setClusterLabels(cluster_label);
+
+            // Convert List to Set to match entity expectations
+            Set<Portfolio> portfolioSet = new HashSet<>(portfolioList); // Conversion instead of casting
+            p.setPortfolios(portfolioSet);
+
+            // Check for existing portfolio investments for the user
+            List<PortfolioInvestment> portfolioInvestmentsUser = proInvestmentRepository.findByUsersportfolio(user);
+            List<PortfolioInvestment> portfolioInvestmentsCluster = new ArrayList<>();
+            for (Portfolio portfolio : portfolioSet) {
+                portfolioInvestmentsCluster.addAll(proInvestmentRepository.findByPortfolios(portfolio));
+            }
+
+            if (!portfolioInvestmentsUser.isEmpty() && !portfolioInvestmentsCluster.isEmpty()) {
+                // Update existing investment
+                PortfolioInvestment existingInvestment = portfolioInvestmentsCluster.get(0); // Modify logic as per requirement
+                existingInvestment.setAmount(p.getAmount() + existingInvestment.getAmount());
+                proInvestmentRepository.save(existingInvestment);
+            } else {
+                // Save new investment
+                proInvestmentRepository.save(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error while adding portfolio investment: " + e.getMessage());
+        }
     }
+
+
     public void closeOrder(Long investId){
         proInvestmentRepository.deleteById(investId);
     }
@@ -57,6 +81,7 @@ public class PorInvesmentImp implements IProInvestment {
 //        message.setSubject(subject);
 //        message.setText(body);
 //        mailSender.send(message);
+//
 //    }
     public List<PortfolioInvestment> getAllInvestment(){
         return proInvestmentRepository.findAll();

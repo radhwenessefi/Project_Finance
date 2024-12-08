@@ -1,40 +1,58 @@
-# sart to deploy the dbscan model
-
-from fastapi import FastAPI,  HTTPException, Body
+from fastapi import FastAPI, HTTPException
+from typing import Optional
 import pickle
-from typing import Optional 
 import pandas as pd
-from sklearn.cluster import DBSCAN
-import numpy as np
 import json
+import logging
+import os
 from dbscan_module import DbscanClustering
 
 app = FastAPI()
-@app.get('/')
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Test route
+@app.get("/")
 async def scoring_endpoint():
-    return {"hello":"word"}
+    return {"message": "Hello, world!"}
 
-with open("C:/Users/DELL/Desktop/PIDEV-PROJECT-PIONEER/PIDEV-Machine-Learning/dbscan_model.pkl", "rb") as model_file:
+# Load the DBSCAN model from pickle file
+model_path = "C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/dbscan_model.pkl"
+if not os.path.exists(model_path):
+    raise FileNotFoundError(f"Pickle file not found at {model_path}")
 
-    loaded_dbscan_instance = pickle.load(model_file)
+with open(model_path, "rb") as model_file:
+    try:
+        loaded_dbscan_instance = pickle.load(model_file)
+        logging.debug(f"Pickle file loaded successfully: {type(loaded_dbscan_instance)}")
+    except Exception as e:
+        logging.error(f"Error loading pickle file: {e}")
+        raise e
 
-# Define the endpoint for receiving POST requests
+# Endpoint to apply DBSCAN
 @app.get("/apply_dbscan")
 async def apply_dbscan(
-    
-    esp_value: Optional[float] = 5,
-    min_samples_value: Optional[int] = 5,
-    csv_filename: Optional[str] = "C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/top_40_stocks_data.csv",
+    eps_value: Optional[float] = 0.3,
+    min_samples_value: Optional[int] = 4,
+    csv_filename: Optional[str] = "C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/top_40_stocks_average.csv",
     k: Optional[int] = 3,
 ):
     try:
-        # Set the parameters in the loaded instance
-        loaded_dbscan_instance.esp_value = esp_value
-        loaded_dbscan_instance.min_samples_value = min_samples_value
+        logging.debug("Received request to /apply_dbscan with parameters:")
+        logging.debug(f"eps_value={eps_value}, min_samples_value={min_samples_value}, csv_filename={csv_filename}, k={k}")
+
+        # Validate CSV file path
+        if not os.path.exists(csv_filename):
+            raise FileNotFoundError(f"CSV file not found at {csv_filename}")
+
+        # Update loaded DBSCAN instance with new parameters
+        loaded_dbscan_instance.eps = eps_value
+        loaded_dbscan_instance.min_samples = min_samples_value
         loaded_dbscan_instance.csv_filename = csv_filename
         loaded_dbscan_instance.k = k
 
-        # Call the apply_dbscan method
+         # Call the apply_dbscan method
         loaded_dbscan_instance.apply_dbscan()
 
         # Get the clustering labels

@@ -1,17 +1,15 @@
 package tn.esprit.projectbackend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
+import java.util.Set;
 
 @Entity
 @Getter
@@ -23,20 +21,38 @@ public class PortfolioInvestment {
     @Valid
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long idPortfolioInvestement;
-    @NotNull(message = "amount cant be null")
-    Long amount;
-    @NotNull(message = "amount cant be null")
+    private Long idPortfolioInvestement;
+
+    @NotNull(message = "Amount can't be null")
+    private Long amount;
+
+    @NotNull(message = "Date of inscription can't be null")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    Date dateOfInsecription;
-    @NotNull(message = "amount cant be null")
-    Long takeProfit;
-    @NotNull(message = "amount cant be null")
-    Long stopLoss;
-    @NotNull(message = "amount cant be null")
+    private Date dateOfInsecription;
+
+    @NotNull(message = "Take profit can't be null")
+    private Long takeProfit;
+
+    @NotNull(message = "Stop loss can't be null")
+    private Long stopLoss;
+
+    @NotNull(message = "Order type can't be null")
     @Enumerated(EnumType.STRING)
-    OrderType orderType;
+
+    private OrderType orderType;
+
+    private Long clusterLabels;
+    @ManyToMany
+    @JoinTable(
+            name = "portfolio_investment_portfolio",
+            joinColumns = @JoinColumn(name = "portfolio_investment_id"),
+            inverseJoinColumns = @JoinColumn(name = "portfolio_id")
+    )
+    @JsonIgnore
+    @ToString.Exclude // Exclude the collection to prevent circular references
+    private Set<Portfolio> portfolios;
 
     @ManyToOne
-    Portfolio portfolios ;
+    @JsonIgnore
+    private User usersportfolio;
 }

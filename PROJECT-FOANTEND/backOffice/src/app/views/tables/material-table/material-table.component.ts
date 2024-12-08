@@ -58,7 +58,7 @@ export class MaterialTableComponent implements OnInit {
   }
   getDisplayedColumns() {
     //return ['name', 'age', 'balance', 'company', 'status', 'actions'];
-    return ['Symbol', 'OrderType','Amount', 'TakeProfit', 'StopLoss', 'Date', 'actions', 'prediction'];
+    return ['Portfolio Reference','OrderType','Amount', 'TakeProfit', 'StopLoss', 'Date', 'actions', 'prediction'];
   }
   getItems() {    
     this.getItemSub = this.tableService.getItems()
@@ -120,8 +120,8 @@ export class MaterialTableComponent implements OnInit {
     }
     
     getPrediction(row) { 
-      console.log("the data is: ", row.portfolios.idPortfolio)
-      let id = row.portfolios.idPortfolio;
+      console.log("the data is: ", row.clusterLabels)
+      let id = row.clusterLabels;
       this.portfolioService.getPrediction(id)
         .subscribe(data => {
           this.predictionValue = data;

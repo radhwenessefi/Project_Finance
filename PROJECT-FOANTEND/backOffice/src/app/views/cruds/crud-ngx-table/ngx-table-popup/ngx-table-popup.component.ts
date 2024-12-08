@@ -51,7 +51,7 @@ export class NgxTablePopupComponent implements OnInit {
 
 submit() {
   console.log("the item form is: ", this.itemForm);
-  console.log("the data to be submitted: ", this.itemForm.value, this.userid, this.portfolioid);
+  console.log("the data to be submitted: ", this.itemForm.value,"the user id is here", this.userid,"the cluster label is here ", this.portfolioid);
 
   this.portfolioService.addInvestment(this.itemForm.value, this.userid, this.portfolioid).subscribe(
     (response: any) => {

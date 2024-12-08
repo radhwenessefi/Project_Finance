@@ -6,7 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os
-print("Current Working Directory:", os.getcwd())
+from fastapi import HTTPException
+
 class DbscanClustering:
     
     def __init__(self, esp_value, min_samples_value, csv_filename, k):
@@ -17,11 +18,6 @@ class DbscanClustering:
         self.features = None
         self.df = None
         self.clustering = None
-        self.best_eps = None
-        self.best_min_samples = None
-        self.best_silhouette_score = None
-        self.eps_range= None
-        self.min_samples_range = None
 
     def get_data(self):
         self.df = pd.read_csv(self.csv_filename)
@@ -31,54 +27,38 @@ class DbscanClustering:
         nn_model = NearestNeighbors(n_neighbors=self.k)
         nn_model.fit(self.features)
         distances, indices = nn_model.kneighbors(self.features)
-        distances = np.sort(distances)
-        distances = distances[:, 1]
-        plt.plot(distances)
+        distances = np.sort(distances, axis=0)
+        distances = distances[:, 1]  # Use the distance to the k-th nearest neighbor
+  
+
+        # Set the eps value to the average of the distances
         average_value = np.mean(distances)
-        self.esp_value = average_value
+        self.esp_value = average_value  # Adjust the eps value dynamically
+        print(f"Calculated eps value: {self.esp_value}")
 
     def apply_dbscan(self):
+        self.nearest_neighbors()  # Update the eps value from nearest neighbors
         dbscan = DBSCAN(eps=self.esp_value, min_samples=self.min_samples_value)
         self.clustering = dbscan.fit(self.features)
-    def grid_search(self, eps_range, min_samples_range):
-       
-        self.best_silhouette_score = -1
-        
-        # Iterate over all combinations of eps and min_samples
-        for eps in self.eps_range:
-            for min_samples in self.min_samples_range:
-                silhouette_avg = self.apply_dbscan(eps, min_samples)
-                print(f"eps: {eps}, min_samples: {min_samples}, Silhouette Score: {silhouette_avg}")
-                
-                # Track the best parameters
-                if silhouette_avg > best_silhouette_score:
-                    best_silhouette_score = silhouette_avg
-                    best_eps = eps
-                    best_min_samples = min_samples
-        
-        print(f"Best Silhouette Score: {best_silhouette_score} with eps: {best_eps} and min_samples: {best_min_samples}")
-        return best_eps, best_min_samples, best_silhouette_score
+        print("The eps value used for DBSCAN:", self.esp_value)  # Corrected to use self.esp_value
 
     def accuracy_dbscan(self):
         cluster_labels = self.clustering.labels_
+        
+        # Check if only one unique label is assigned (i.e., all points are noise)
+        unique_labels = set(cluster_labels)
+        if len(unique_labels) <= 1:
+            raise HTTPException(status_code=400, detail="No meaningful clusters found. Try adjusting eps or min_samples.")
+
         self.df['Cluster_Labels'] = cluster_labels
         silhouette_avg = silhouette_score(self.features, cluster_labels)
         print("Silhouette Score:", silhouette_avg)
         print(self.df.columns)
-        print(self.df)
+        self.df.to_csv("output.csv", index=False)
+        print("Data saved to output.csv")
         return self.df
 
-    def result_plot(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        cluster_labels = self.clustering.labels_
-        ax.scatter(self.df["Cluster_Labels"], self.df["Open"], self.df["High"], c=cluster_labels, cmap='viridis', label='Data Points')
-        ax.set_title('DBSCAN Clustering')
-        ax.set_xlabel('Cluster_Labels')
-        ax.set_ylabel('Open')
-        ax.set_zlabel('High')
-        plt.legend()
-        plt.show()
+
 
     def save_model(self, filename="dbscan_model.pkl"):
         current_directory = os.getcwd()
@@ -87,19 +67,21 @@ class DbscanClustering:
             pickle.dump(self, file)
         print(f"Model saved to {full_path}")
 
-# Uncomment this section to create an instance and save the model
-esp_value = 0
-min_samples_value = 5
-csv_filename = "C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/top_40_stocks_data.csv"
 
-k = 3
+# Adjusted parameter values for experimentation
+esp_value = 0  # Initial value, will be updated by nearest_neighbors()
+min_samples_value = 4  # Adjust as needed
+csv_filename = "C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/top_40_stocks_average.csv"
+k = 10  # Adjust to capture broader neighborhood
+
+# Instantiate and execute DBSCAN clustering
 dbscan_instance = DbscanClustering(esp_value, min_samples_value, csv_filename, k)
 dbscan_instance.get_data()
-dbscan_instance.nearest_neighbors()
-dbscan_instance.apply_dbscan()
-dbscan_instance.accuracy_dbscan()
-dbscan_instance.result_plot()
-dbscan_instance.save_model()
+dbscan_instance.apply_dbscan()  # Automatically calls nearest_neighbors to update eps
 
-
-
+# Check for meaningful clusters and plot results
+try:
+    dbscan_instance.accuracy_dbscan()
+    dbscan_instance.save_model()
+except HTTPException as e:
+    print(f"Error: {e.detail}")

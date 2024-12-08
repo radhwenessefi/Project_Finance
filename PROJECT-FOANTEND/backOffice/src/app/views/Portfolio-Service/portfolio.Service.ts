@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ConfigService } from './Config.service';
+import { Console } from 'console';
 
 
 @Injectable({
@@ -20,7 +21,7 @@ import { ConfigService } from './Config.service';
     url=this.config.url
 
     getDataPortfolio(){
-        return this.http.get(this.url+"/portfolio/get-all-portfolios")
+        return this.http.get(this.url+"/portfolio/get-clustred-portfolios")
       }
 
     createPortfolio(){
@@ -33,7 +34,10 @@ import { ConfigService } from './Config.service';
         return this.http.get(this.url+"/ProInvestment/get-all-portfolioInvesment")
       }
       addInvestment(data, userId, portfolioId){
+        console.log("the test from the api ",data, userId, portfolioId);
         return this.http.post(this.url+"/ProInvestment/add-portfolio-Investment/" + userId + "/" + portfolioId, data);
+        
+        
     }
     closeOrder(id){ 
         return this.http.delete(this.url+"/ProInvestment/closeorder/"+id)

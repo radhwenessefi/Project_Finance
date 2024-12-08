@@ -5,25 +5,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.web.client.RestTemplate;
 import tn.esprit.projectbackend.Entity.Portfolio;
-import tn.esprit.projectbackend.Entity.PortfolioInvestment;
-import tn.esprit.projectbackend.Entity.Pridect;
 import tn.esprit.projectbackend.Repository.PortfolioRepository;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -59,18 +57,35 @@ public class PortfolioServiceImp implements IPortfolioService {
             ResponseEntity<String> rawResponseEntity = restTemplate.getForEntity(apiTest, String.class);
             String rawResponse = rawResponseEntity.getBody();
             logger.info("Raw API response: {}", rawResponse);
-            List<Portfolio> portfolioList = mapper.readValue(rawResponse, new TypeReference<List<Portfolio>>() {});
-            logger.info("The list of portfolio: {}", portfolioList);
-            return portfolioList;
+
+            // Check if the response is an array or an object
+            if (rawResponse.startsWith("[")) { // Starts with '[' -> it's a list
+                List<Portfolio> portfolioList = mapper.readValue(rawResponse, new TypeReference<List<Portfolio>>() {});
+                logger.info("The list of portfolio: {}", portfolioList);
+                return portfolioList;
+            } else { // Else it's a single object, so handle it accordingly
+                Portfolio portfolio = mapper.readValue(rawResponse, Portfolio.class);
+                List<Portfolio> singlePortfolioList = new ArrayList<>();
+                singlePortfolioList.add(portfolio);
+                logger.info("The single portfolio: {}", portfolio);
+                return singlePortfolioList;
+            }
         } catch (IOException e) {
             logger.error("Error fetching data from API: {}", e.getMessage(), e);
             // Handle the error as needed
             return Collections.emptyList();
         }
     }
-    public List<Map<Long, Portfolio>>  getPortfolioByCluster(){
-        return portfolioRepository.findPortfoliosGroupedByClusterLabel();
+
+    @Override
+    public Map<Long, List<Portfolio>> getPortfolioByCluster() {
+        return portfolioRepository.findAllPortfolios()
+                .stream()
+                .collect(Collectors.groupingBy(Portfolio::getClusterLabels));
     }
+
+
+
 
 
     public Float predictionForVolume(Long pid) {

@@ -12,22 +12,26 @@ import { HttpClient } from '@angular/common/http';
 export class CrudService {
   items: any[];
   data: any;
+  clusters : any
   constructor(
     private http: HttpClient,
     @Inject(PortfolioService) private portfolioService: PortfolioService
 
   ) {
   }
+
   getDataPortfolio(){
-    this.portfolioService.getDataPortfolio().subscribe((data: any[]) => {
+ this.portfolioService.getDataPortfolio().subscribe((data: any[]) => {
       this.data = data;
       this.items = this.data;
       console.log("the result as an array of JSON objects: ", this.data);
     })
   }
+   
+
   //******* Implement your APIs ********
   getItems(): Observable<any> {
-    console.log("the result as an array of JSON objects: ", this.items);
+    console.log("Clusters grouped by label: ", this.clusters);
     this.getDataPortfolio();
     return  of(this.items.slice())
   }

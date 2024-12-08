@@ -1,66 +1,57 @@
-<div class="m-3 flex flex-col md:flex-row justify-between " [@animate]="{value:'*',params:{y:'50px',delay:'300ms'}}">
-
+<div class="cards-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 p-4"> 
   <div class="info-card primary flex-grow">
     <div class="description">The stock market is filled with individuals who know the price of everything, but the value of nothing</div>
   </div>
   <div class="md:w-[100px] lg:w-1/6 xl:w-2/6"></div>
   <button mat-raised-button class="m-2" color="primary" (click)="createPortfolio()">
     Create Portfolio</button>
+
+  <div *ngFor="let item of contentArray">
+    <mat-card class="card-item" [@animate]="{value:'*', params:{y:'53px', delay:'300ms'}}">
+      <!-- Display the cluster key -->
+      <h3 style="text-align: center; margin: 0;">Portfolio REF:### {{ item.cluster }}</h3>
+
+      <!-- Mat-table implementation -->
+      <mat-table [dataSource]="item.dataSource" class="mat-elevation-z8">
+        <!-- Columns -->
+        <ng-container matColumnDef="ticker">
+          <th mat-header-cell *matHeaderCellDef> Ticker </th>
+          <td mat-cell *matCellDef="let portfolio"> {{ portfolio.Ticker }} </td>
+        </ng-container>
+        <ng-container matColumnDef="open">
+          <th mat-header-cell *matHeaderCellDef> Open </th>
+          <td mat-cell *matCellDef="let portfolio"> {{ portfolio.Open }} </td>
+        </ng-container>
+        <ng-container matColumnDef="high">
+          <th mat-header-cell *matHeaderCellDef> High </th>
+          <td mat-cell *matCellDef="let portfolio"> {{ portfolio.High }} </td>
+        </ng-container>
+        <ng-container matColumnDef="low">
+          <th mat-header-cell *matHeaderCellDef> Low </th>
+          <td mat-cell *matCellDef="let portfolio"> {{ portfolio.Low }} </td>
+        </ng-container>
+        <ng-container matColumnDef="volume">
+          <th mat-header-cell *matHeaderCellDef> Volume </th>
+          <td mat-cell *matCellDef="let portfolio"> {{ portfolio.Volume }} </td>
+        </ng-container>
+
+        <!-- Header and Row Definitions -->
+        <tr mat-header-row *matHeaderRowDef="['ticker', 'open', 'high', 'low', 'volume']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['ticker', 'open', 'high', 'low', 'volume'];"></tr>
+      </mat-table>
+
+      <!-- Paginator -->
+      <mat-paginator [pageSizeOptions]="[4, 10, 20]" showFirstLastButtons></mat-paginator>
+            <!-- Card Actions -->
+            <mat-card-actions style="display: flex; justify-content: center; align-items: center; margin-top: 16px;">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="openPopUp(item.cluster)" 
+                style="width: 80%; max-width: 300px; padding: 12px 24px; font-size: 16px; text-align: center;">
+                Invest
+              </button>
+            </mat-card-actions>
+    </mat-card>
+  </div>
 </div>
-<mat-card class="p-0" [@animate]="{value:'*',params:{y:'50px',delay:'300ms'}}">
-  <mat-card-content class="p-0">
-    <mat-table [dataSource]="dataSource" matSort>
-
-
-      <ng-container matColumnDef="Symbol">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Symbol </mat-header-cell>
-        <mat-cell *matCellDef="let row" data-label="name"> {{row.Symbol}} </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="Open">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Open </mat-header-cell>
-        <mat-cell *matCellDef="let row" data-label="age"> {{row.Open}} </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="Close">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Close </mat-header-cell>
-        <mat-cell *matCellDef="let row" [style.color]="row.color" data-label="color"> {{row.Close}} </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="High">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> High </mat-header-cell>
-        <mat-cell *matCellDef="let row" [style.color]="row.color" data-label="color"> {{row.High}} </mat-cell>
-      </ng-container>
-      <ng-container matColumnDef="Low">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Low </mat-header-cell>
-        <mat-cell *matCellDef="let row" [style.color]="row.color" data-label="color"> {{row.Low}} </mat-cell>
-      </ng-container>
-      <ng-container matColumnDef="Volume">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> volume </mat-header-cell>
-        <mat-cell *matCellDef="let row" [style.color]="row.color" data-label="color"> {{row.Volume}} </mat-cell>
-      </ng-container>
-      <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Action </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <button mat-icon-button mat-sm-button color="warn" (click)="deletePortfolio(row.idPortfolio)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-cell>
-      </ng-container>
-      <ng-container matColumnDef="invest">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> invest</mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <button mat-icon-button mat-sm-button color="primary" (click)="openPopUp(row.idPortfolio)">
-            <mat-icon>trending_up</mat-icon> <!-- Use 'trending_up' icon for investment -->
-          </button>
-        </mat-cell>
-        
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-    </mat-table>
-    <mat-paginator [pageSizeOptions]="[10, 25, 100]"></mat-paginator>
-
-  </mat-card-content>
-</mat-card>

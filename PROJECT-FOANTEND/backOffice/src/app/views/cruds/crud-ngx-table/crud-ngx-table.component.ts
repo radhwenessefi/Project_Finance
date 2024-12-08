@@ -1,14 +1,14 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { CrudService } from '../crud.service';
-import { MatDialogRef as MatDialogRef, MatDialog as MatDialog } from '@angular/material/dialog';
-import { MatSnackBar as MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialogRef, MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppConfirmService } from '../../../shared/services/app-confirm/app-confirm.service';
 import { AppLoaderService } from '../../../shared/services/app-loader/app-loader.service';
 import { NgxTablePopupComponent } from './ngx-table-popup/ngx-table-popup.component';
 import { Subscription } from 'rxjs';
 import { egretAnimations } from "../../../shared/animations/egret-animations";
-import { MatTableDataSource as MatTableDataSource } from '@angular/material/table';
-import { MatPaginator as MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { PortfolioService } from 'app/views/Portfolio-Service/portfolio.Service';
 import { Inject } from '@angular/core';
@@ -18,15 +18,14 @@ import { Inject } from '@angular/core';
   templateUrl: './crud-ngx-table.component.html',
   animations: egretAnimations
 })
-export class CrudNgxTableComponent implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
-  
-  public dataSource: any;
-  public displayedColumns: any;
+export class CrudNgxTableComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChildren(MatPaginator) paginators: QueryList<MatPaginator>;
+  public contentArray = []; // Populated dynamically
+  public displayedColumns: string[] = ['ticker', 'open', 'high', 'low', 'volume'];
   public getItemSub: Subscription;
   data: any;
   portfolioID: any;
+
   constructor(
     private dialog: MatDialog,
     private snack: MatSnackBar,
@@ -34,104 +33,84 @@ export class CrudNgxTableComponent implements OnInit, OnDestroy {
     private confirmService: AppConfirmService,
     private loader: AppLoaderService,
     @Inject(PortfolioService) private portfolioService: PortfolioService
-
-  ) { }
+  ) {}
 
   ngOnInit() {
-    this.displayedColumns = this.getDisplayedColumns();
-    this.getItems()
+    console.log('ngOnInit triggered');
+    this.getDataPortfolio();
+  }
 
-  }
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    // Listen for changes in `paginators` and assign them dynamically
+    this.paginators.changes.subscribe(() => {
+      this.contentArray.forEach((item, index) => {
+        const paginator = this.paginators.toArray()[index];
+        item.dataSource.paginator = paginator;
+      });
+    });
   }
+
   ngOnDestroy() {
     if (this.getItemSub) {
-      this.getItemSub.unsubscribe()
+      this.getItemSub.unsubscribe();
     }
   }
-//i want to change the displayed columns to the following
 
-  getDisplayedColumns() {
-    //return ['name', 'age', 'balance', 'company', 'status', 'actions'];
-    return ['Symbol', 'Close','High', 'Low', 'Open', 'Volume', 'actions', 'invest'];
-  }
-
-  getItems() {    
-    this.getItemSub = this.crudService.getItems()
-      .subscribe(data => {
-        this.dataSource = new MatTableDataSource(data);
-      })
+  getDataPortfolio() {
+    this.portfolioService.getDataPortfolio().subscribe((data: any[]) => {
+      this.data = data;
+      this.transformData();
+      console.log("Data loaded into 'this.contentArray':", this.contentArray);
+    });
   }
 
-  openPopUp(data: any = {}) {
-    let dialogRef: MatDialogRef<any> = this.dialog.open(NgxTablePopupComponent, {
-      width: '720px',
-      disableClose: true,
-      data: { payload: data, portfolioID: data }
-    })
-    this.portfolioID = data;
-    console.log("the is of the portfolio is ",this.portfolioID)
-    dialogRef.afterClosed()
-      .subscribe(res => {
-        if(!res) {
-          // If user press cancel
-          return;
-        }
-          this.loader.open('Adding new Customer');
-          this.crudService.addItem(res)
-            .subscribe(data => {
-              this.dataSource = data;
-              this.loader.close();
-              this.snack.open('New Order Added!', 'OK', { duration: 4000 })
-            })
-      })
+  transformData() {
+    // Convert `this.data` into a format suitable for rendering with clusters
+    this.contentArray = Object.entries(this.data || {}).map(([key, value]) => ({
+      cluster: key, // Cluster identifier
+      dataSource: new MatTableDataSource(value as any[]), // Create MatTableDataSource for each cluster
+    }));
   }
-  deleteItem(row) {
-    this.confirmService.confirm({message: `Delete ${row.name}?`})
-      .subscribe(res => {
-        if (res) {
-          this.loader.open('Deleting Customer');
-          this.crudService.removeItem(row)
-            .subscribe(data => {
-              this.dataSource = data;
-              this.loader.close();
-              this.snack.open('Customer deleted!', 'OK', { duration: 4000 })
-            })
-        }
-      })
-      this.ngOnInit();
-  }
-  //consume the createPortfolio from  service portfolioService 
   createPortfolio() {
     setTimeout(() => {
       this.loader.open('Creating Portfolio');
-  
       setTimeout(() => {
         this.loader.close();
         this.snack.open('Portfolio Created!', 'OK', { duration: 4000 });
-  
+
         this.portfolioService.createPortfolio().subscribe((data: any[]) => {
+          console.log('Portfolio created:', data);
+        }, error => {
+          console.log('Error creating portfolio:', error);
         });
       }, 5000);
     }, 5000);
   }
+  openPopUp(data: any = {}) {
+    const dialogRef: MatDialogRef<any> = this.dialog.open(NgxTablePopupComponent, {
+      width: '720px',
+      disableClose: true,
+      data: { payload: data, portfolioID: data }
+    });
+    this.portfolioID = data;
+    console.log('The ID of the portfolio:', this.portfolioID);
 
-  //consume the deletePortfolio from  service portfolioService
-  deletePortfolio(id) {
-    this.confirmService.confirm({message: `Delete ${id}?`})
-      .subscribe(res => {
-        if (res) {
-          this.loader.open('Deleting Portfolio');
-          this.portfolioService.deletePortfolio(id)
-            .subscribe(data => {
-              this.loader.close();
-              this.snack.open('Portfolio deleted!', 'OK', { duration: 4000 })
-            })
+    dialogRef.afterClosed().subscribe(res => {
+      if (!res) return;
+
+      this.loader.open('Adding new Customer');
+      this.crudService.addItem(res).subscribe(
+        responseData => {
+          console.log('New customer added:', responseData);
+          this.loader.close();
+          this.snack.open('New Order Added!', 'OK', { duration: 4000 });
+          this.getDataPortfolio(); // Reload data
+        },
+        error => {
+          console.log('Error adding item:', error);
+          this.loader.close();
         }
-      })
+      );
+    });
   }
-  
-
 }

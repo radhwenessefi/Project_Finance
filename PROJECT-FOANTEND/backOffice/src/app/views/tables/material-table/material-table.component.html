@@ -9,11 +9,9 @@
 <mat-card class="p-0" [@animate]="{value:'*',params:{y:'50px',delay:'300ms'}}">
   <mat-card-content class="p-0">
     <mat-table [dataSource]="dataSource" matSort>
-
-
-      <ng-container matColumnDef="Symbol">
-        <mat-header-cell *matHeaderCellDef mat-sort-header> Symbol </mat-header-cell>
-        <mat-cell *matCellDef="let row" data-label="name"> {{row.portfolios.Symbol}} </mat-cell>
+      <ng-container matColumnDef="Portfolio Reference">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Portfolio Reference </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="age"> ###{{row.clusterLabels}} </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="OrderType">

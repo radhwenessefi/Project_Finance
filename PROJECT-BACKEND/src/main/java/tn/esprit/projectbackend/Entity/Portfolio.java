@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.math.BigDecimal;
 import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -16,28 +17,34 @@ import java.util.Set;
 public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long idPortfolio;
-    @JsonProperty("Unnamed: 0")
-    private int unnamedField;
-    @JsonProperty("Date")
-    Date date;
+    private Long idPortfolio;
+
+    @JsonProperty("Ticker")
+    private String symbol;
+
     @JsonProperty("Open")
-    Float open;
+    private Float open;
+
     @JsonProperty("High")
-    Float high;
+    private Float high;
+
     @JsonProperty("Low")
-    Float low;
+    private Float low;
+
     @JsonProperty("Close")
-    Float close;
+    private Float close;
+
     @JsonProperty("Adj Close")
-    Float adjClose;
+    private Float adjClose;
+
     @JsonProperty("Volume")
-    String volume;
-    @JsonProperty("Symbol")
-    String symbol;
+    private BigDecimal volume;
+
     @JsonProperty("Cluster_Labels")
-    Long clusterLabels;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy="portfolios")
+    private Long clusterLabels;
+
+    @ManyToMany(mappedBy = "portfolios")
     @JsonIgnore
+    @ToString.Exclude // Exclude the collection to prevent circular references
     private Set<PortfolioInvestment> portfolioInvestments;
 }

@@ -24,6 +24,7 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ErrorHandlerService } from './shared/services/error-handler.service';
 import { TokenInterceptor } from './shared/interceptors/token.interceptor';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 
 // AoT requires an exported function for factories
@@ -37,11 +38,13 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
 
 @NgModule({
   imports: [
+    ScrollingModule,
     BrowserModule,
     BrowserAnimationsModule,
     SharedModule,
     HttpClientModule,
     LayoutModule,
+    
     PerfectScrollbarModule,
     TranslateModule.forRoot({
       loader: {

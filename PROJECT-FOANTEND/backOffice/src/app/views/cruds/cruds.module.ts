@@ -15,6 +15,7 @@ import { MatSnackBarModule as MatSnackBarModule } from '@angular/material/snack-
 import { MatTooltipModule as MatTooltipModule } from '@angular/material/tooltip';
 import { SharedModule } from '../../shared/shared.module';
 import { CrudNgxTableComponent } from './crud-ngx-table/crud-ngx-table.component';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { CrudsRoutes } from './cruds.routing';
 import { CrudService } from './crud.service';
@@ -26,6 +27,7 @@ import { UpdatePopupComponent } from './crud-ngx-table/update-popup/update-popup
 
 @NgModule({
   imports: [
+    ScrollingModule,
     CommonModule,
     ReactiveFormsModule,
     MatInputModule,
