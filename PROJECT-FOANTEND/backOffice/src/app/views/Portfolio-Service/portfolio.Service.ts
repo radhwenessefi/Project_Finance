@@ -23,7 +23,9 @@ import { Console } from 'console';
     getDataPortfolio(){
         return this.http.get(this.url+"/portfolio/get-clustred-portfolios")
       }
-
+    getDataPortfoliobyID(id){
+        return this.http.get(this.url+"/portfolio/get-by-id-portfolio/"+id)
+      }
     createPortfolio(){
         return this.http.post(this.url+"/portfolio/add-portfolio-fromAPI",null)
       }

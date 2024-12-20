@@ -38,6 +38,11 @@ public class PortfolioResController {
         Portfolio portfolio = portfolioService.addPortfolio(p);
         return  portfolio;
     }
+    @GetMapping("/get-by-id-portfolio/{portfolio-id}")
+    public  Portfolio getByClusterPortfolior(@PathVariable("portfolio-id") Long blId){
+        Portfolio portfolio = portfolioService.getPortfolio(blId);
+        return  portfolio;
+    }
     @DeleteMapping("/remove-portfolio/{portfolio-id}")
     public void  removePortfolio(@PathVariable("portfolio-id") Long blId){
         portfolioService.removePortfolio(blId);

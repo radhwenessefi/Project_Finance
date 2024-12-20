@@ -28,7 +28,7 @@ async def prediction_volume(item: VolumesItem):
         array_list = np.array(values_list).reshape(1, -1)
         
         # Load the model
-        with open("C:/Users/DELL/Desktop/PIDEV-PROJECT-PIONEER/PIDEV-Machine-Learning/random_model.pkl", "rb") as model_file:
+        with open("C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/random_model.pkl", "rb") as model_file:
             loaded_prediction_instance = pickle.load(model_file)
         
         # Make predictions

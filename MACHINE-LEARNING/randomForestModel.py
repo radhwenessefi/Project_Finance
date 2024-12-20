@@ -142,7 +142,7 @@ class PredictVolumes:
 
 # Example usage:
 simple_test = np.array([130.279998779296, 130.899993896484, 124.169998168945, 124.21630859375, 124.21630859375])
-predictor = PredictVolumes("C:\\Users\\DELL\\Desktop\\PI_infini\\data_with_indicateur.csv", simple_test)
+predictor = PredictVolumes("C:/Users/DELL/Desktop/Project_Finance/MACHINE-LEARNING/data_with_indicateur.csv", simple_test)
 predictor.importData()
 #predictor.CorrelationGraph()
 df_after_dropping = predictor.dropCorrolateColumns()

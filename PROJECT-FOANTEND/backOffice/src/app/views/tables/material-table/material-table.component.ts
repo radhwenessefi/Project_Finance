@@ -13,13 +13,6 @@ import { AppLoaderService } from 'app/shared/services/app-loader/app-loader.serv
 import { Subscription } from 'rxjs';
 import { PredictionPopupComponent } from './prediction-popup/prediction-popup.component';
 import { UpdatePopupComponent } from 'app/views/cruds/crud-ngx-table/update-popup/update-popup.component';
-
-
-
-
-
-
-
 @Component({
   selector: 'app-material-table',
   templateUrl: './material-table.component.html',

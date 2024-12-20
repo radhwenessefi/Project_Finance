@@ -1,17 +1,19 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { MatDialogRef as MatDialogRef, MAT_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { UntypedFormBuilder, Validators, UntypedFormGroup } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { UntypedFormBuilder } from '@angular/forms';
 import { PortfolioService } from 'app/views/Portfolio-Service/portfolio.Service';
-import { get } from 'http';
 import { HttpClient } from '@angular/common/http';
+import { MatDialogModule } from '@angular/material/dialog';
+import { ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-prediction-popup',
   standalone: true,
-  imports: [],
+  imports: [MatDialogModule, ReactiveFormsModule, CommonModule],
   templateUrl: './prediction-popup.component.html',
-  styleUrls: ['./prediction-popup.component.scss']
- 
+  styleUrls: ['./prediction-popup.component.scss'],
+  providers: [PortfolioService],
 })
 export class PredictionPopupComponent implements OnInit {
   prectionValue: any;
@@ -22,82 +24,130 @@ export class PredictionPopupComponent implements OnInit {
   riskPercentage: any;
   resultpotentialProfit: any;
   investmentAmountresult: any;
-  
-  
+  idpro: any
+  myPort : any
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<PredictionPopupComponent>,
     private fb: UntypedFormBuilder,
     private http: HttpClient,
-    @Inject(PortfolioService) private portfolioService: PortfolioService
-  ) { }
+    private portfolioService: PortfolioService
+  ) {}
+
   ngOnInit() {
-    
-    this.prectionValue = this.data.predictionValue;
-     this.allInvestment = this.data.row;
-    console.log("the data iiiiiiiiiiid: ", this.prectionValue)
-    console.log("the data Investment is : ", this.allInvestment)
-    this.investmentAmount(this.prectionValue);
-    this.returnonInvestment(this.prectionValue, this.allInvestment);
-    this.stopLossCalculation(this.allInvestment);
-    this.takeProfitCalculation(this.allInvestment);
-    this.riskPercentageofInvestment(this.allInvestment);
-    this.potentialProfit(this.prectionValue, this.allInvestment);
-    console.log("the investment amount is: ", this.investmentAmount(this.prectionValue));
-    console.log("the return on investment is: ", this.returnonInvestment(this.prectionValue, this.allInvestment));
-    console.log("the stop loss is: ", this.stopLossCalculation(this.allInvestment));
-    console.log("the take profit is: ", this.takeProfitCalculation(this.allInvestment));
-    console.log("the risk percentage of investment is: ", this.riskPercentageofInvestment(this.allInvestment));
-    console.log("the potential profit is: ", this.potentialProfit(this.prectionValue, this.allInvestment));
-
-  }
-  potentialProfit(prectionValue, allInvestment) {
-    
-    let amount = allInvestment.amount;
-    let takeProfit = allInvestment.takeProfit;
-    let stopLoss = allInvestment.stopLoss;
-    let orderType = allInvestment.orderType;
-    if (orderType == 'buy') {
-      this.resultpotentialProfit = (prectionValue - takeProfit) * amount;
-    } else {
-      this.resultpotentialProfit = (stopLoss - prectionValue) * amount;
+    if (!this.data || !this.data.row) {
+      console.error('Data is missing or invalid');
+      return;
     }
-    return this.resultpotentialProfit;
-
-  }
-  investmentAmount(prectionValue) {
-   
-    //Calculate the amount of money you will invest based on the predicted price and the number of shares you want to buy
-     this.investmentAmountresult = prectionValue * 50;
-    return this.investmentAmountresult;
-   }
-   //Calculate the return on your investment based on the predicted price and the initial investment amount
-   returnonInvestment(prectionValue,allInvestment){
-    let InvestmentAmount = allInvestment.amount;
-    
-    this.ROI = ((prectionValue - InvestmentAmount) / InvestmentAmount)*100;
-    return this.ROI;
-   }
-   //Determine the stop-loss price based on your risk tolerance. For example, if you're willing to tolerate a 5% loss:
-  stopLossCalculation(allInvestment){
   
-    let currentPrice = allInvestment.portfolios.Open;
-    this.stopLoss = currentPrice - (currentPrice * 0.05);
+    this.prectionValue = this.data.predictionValue;
+    this.allInvestment = this.data.row;
+    this.idpro = this.data.row.idPortfolioInvestement;
+  
+    console.log('Prediction Value:', this.prectionValue);
+    console.log('Investment Data:', this.allInvestment);
+  
+    // Fetch portfolio data and then perform calculations
+    this.getDataPortfolio();
+  }
+  
+  getDataPortfolio() {
+    this.portfolioService.getDataPortfoliobyID(this.idpro).subscribe(
+      (data: any) => {
+        this.myPort = data;
+        console.log('Portfolio Data:', this.myPort);
+  
+        if (!this.myPort?.Open) {
+          console.error('Portfolio Open price is missing or invalid');
+          return;
+        }
+  
+        // Perform calculations after portfolio data is fetched
+        this.investmentAmount(this.prectionValue);
+        this.returnonInvestment(this.prectionValue);
+        this.stopLossCalculation();
+        this.takeProfitCalculation();
+        this.riskPercentageofInvestment();
+        this.potentialProfit(this.prectionValue);
+  
+        // Log results
+        console.log('Investment Amount:', this.investmentAmountresult);
+        console.log('ROI:', this.ROI);
+        console.log('Stop Loss:', this.stopLoss);
+        console.log('Take Profit:', this.takeProfit);
+        console.log('Risk Percentage:', this.riskPercentage);
+        console.log('Potential Profit:', this.resultpotentialProfit);
+      },
+      (error) => {
+        console.error('Failed to fetch portfolio data:', error);
+      }
+    );
+  }
+  
+  potentialProfit(prectionValue: any) {
+    const amount = this.allInvestment.amount ?? 0;
+    const takeProfit = this.takeProfit ?? 0;
+    const stopLoss = this.stopLoss ?? 0;
+    const orderType = this.allInvestment.orderType;
+  
+    if (orderType === 'buy') {
+      this.resultpotentialProfit = (takeProfit - prectionValue) * amount;
+    } else {
+      this.resultpotentialProfit = (prectionValue - stopLoss) * amount;
+    }
+  
+    return this.resultpotentialProfit;
+  }
+  
+  investmentAmount(prectionValue: any) {
+    this.investmentAmountresult = prectionValue * 50; // Example calculation
+    return this.investmentAmountresult;
+  }
+  
+  returnonInvestment(prectionValue: any) {
+    const investmentAmount = this.allInvestment.amount ?? 0;
+    if (investmentAmount === 0) {
+      console.error('Investment amount is missing or invalid');
+      return 0;
+    }
+  
+    this.ROI = ((prectionValue - investmentAmount) / investmentAmount) * 100;
+    return this.ROI;
+  }
+  
+  stopLossCalculation() {
+    const currentPrice = this.myPort?.Open ?? 0;
+    if (currentPrice === 0) {
+      console.error('Stop Loss Calculation: Current Price is missing or invalid');
+      return 0;
+    }
+  
+    this.stopLoss = currentPrice - currentPrice * 0.05; // 5% loss
     return this.stopLoss;
   }
-  //Set a take-profit price based on your desired profit target. For instance, if you aim for a 10% profit:
-  takeProfitCalculation(allInvestment){
   
-    let currentPrice = allInvestment.portfolios.Open;
-    this.takeProfit = currentPrice + (currentPrice * 0.1);
+  takeProfitCalculation() {
+    const currentPrice = this.myPort?.Open ?? 0;
+    if (currentPrice === 0) {
+      console.error('Take Profit Calculation: Current Price is missing or invalid');
+      return 0;
+    }
+  
+    this.takeProfit = currentPrice + currentPrice * 0.1; // 10% profit
     return this.takeProfit;
   }
- //Calculate the percentage of your investment that you are willing to risk based on your stop-loss strategy
-  riskPercentageofInvestment(allInvestment){
-    
-    let currentPrice = allInvestment.portfolios.Open;
-    let stopLoss = this.allInvestment.stopLoss;
-    this.riskPercentage = ((stopLoss - currentPrice) / currentPrice)*100;
+  
+  riskPercentageofInvestment() {
+    const currentPrice = this.myPort?.Open ?? 0;
+    const stopLoss = this.stopLoss ?? 0;
+  
+    if (currentPrice === 0 || stopLoss === 0) {
+      console.error('Risk Percentage Calculation: Current Price or Stop Loss is missing');
+      return 0;
+    }
+  
+    this.riskPercentage = ((currentPrice - stopLoss) / currentPrice) * 100;
     return this.riskPercentage;
   }
-}
+}  

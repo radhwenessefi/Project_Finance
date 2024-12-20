@@ -41,6 +41,7 @@ public class PortfolioServiceImp implements IPortfolioService {
     public Portfolio getPortfolio(Long portfolioId){
         return portfolioRepository.findById(portfolioId).get();
     }
+
     public  Portfolio addPortfolio(Portfolio b){
         return portfolioRepository.save(b);
     }
@@ -90,7 +91,7 @@ public class PortfolioServiceImp implements IPortfolioService {
 
     public Float predictionForVolume(Long pid) {
         try {
-            Portfolio p = portfolioRepository.findById(pid).get();
+            Portfolio p = portfolioRepository.findByClusterLabels(pid).get(0);
             // Convert Pridect object to JSON string with desired format
             String requestBodyJson = String.format("{\"Open\": %s, \"High\": %s, \"Low\": %s, \"Close\": %s, \"Adj_close\": %s}",
                     p.getOpen(), p.getHigh(), p.getLow(), p.getClose(), p.getAdjClose());
