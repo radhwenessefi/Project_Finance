@@ -2,23 +2,23 @@ import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './shared/components/layouts/admin-layout/admin-layout.component';
 import { AuthLayoutComponent } from './shared/components/layouts/auth-layout/auth-layout.component';
 import { AuthGuard } from './shared/guards/auth.guard';
+import { EventListComponent } from './views/event-list/event-list.component'; // Import the EventListComponent
 
 export const rootRouterConfig: Routes = [
   {
-    path: '', // Redirection par défaut
+    path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full',
   },
   {
-    path: '', // Layout pour les pages publiques (authentification, etc.)
+    path: '',
     component: AuthLayoutComponent,
     children: [],
   },
   {
-    path: '', // Layout pour les pages protégées
+    path: '',
     component: AdminLayoutComponent,
     children: [
-      // Dashboard
       {
         path: 'dashboard',
         loadChildren: () =>
@@ -27,18 +27,14 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Dashboard', breadcrumb: 'DASHBOARD' },
       },
-
-      // Matériaux
       {
         path: 'material',
         loadChildren: () =>
-          import('./views/material-example-view/material-example-view.module').then(
-            (m) => m.MaterialExampleViewModule
-          ),
+          import(
+            './views/material-example-view/material-example-view.module'
+          ).then((m) => m.MaterialExampleViewModule),
         data: { title: 'Material', breadcrumb: 'MATERIAL' },
       },
-
-      // Dialogues
       {
         path: 'dialogs',
         loadChildren: () =>
@@ -47,8 +43,6 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Dialogs', breadcrumb: 'DIALOGS' },
       },
-
-      // Profil utilisateur
       {
         path: 'profile',
         loadChildren: () =>
@@ -57,38 +51,32 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Profile', breadcrumb: 'PROFILE' },
       },
-
-      // Autres pages
       {
         path: 'others',
         loadChildren: () =>
-          import('./views/others/others.module').then(
-            (m) => m.OthersModule
-          ),
+          import('./views/others/others.module').then((m) => m.OthersModule),
         data: { title: 'Others', breadcrumb: 'OTHERS' },
       },
-
-      // Tables
       {
         path: 'tables',
         loadChildren: () =>
-          import('./views/tables/tables.module').then(
-            (m) => m.TablesModule
-          ),
+          import('./views/tables/tables.module').then((m) => m.TablesModule),
         data: { title: 'Tables', breadcrumb: 'TABLES' },
       },
-
-      // Formulaires
       {
         path: 'forms',
         loadChildren: () =>
-          import('./views/forms/forms.module').then(
-            (m) => m.AppFormsModule
-          ),
+          import('./views/forms/forms.module').then((m) => m.AppFormsModule),
         data: { title: 'Forms', breadcrumb: 'FORMS' },
       },
-
-      // Graphiques
+      {
+        path: 'chart',
+        loadChildren: () =>
+          import(
+            './views/chart-example-view/chart-example-view.module'
+          ).then((m) => m.ChartExampleViewModule),
+        data: { title: 'Charts', breadcrumb: 'CHARTS' },
+      },
       {
         path: 'charts',
         loadChildren: () =>
@@ -97,8 +85,6 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Charts', breadcrumb: 'CHARTS' },
       },
-
-      // Inbox
       {
         path: 'inbox',
         loadChildren: () =>
@@ -107,8 +93,6 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Inbox', breadcrumb: 'INBOX' },
       },
-
-      // Calendrier
       {
         path: 'calendar',
         loadChildren: () =>
@@ -117,50 +101,35 @@ export const rootRouterConfig: Routes = [
           ),
         data: { title: 'Calendar', breadcrumb: 'CALENDAR' },
       },
-
-      // CRUD
       {
         path: 'cruds',
         loadChildren: () =>
-          import('./views/cruds/cruds.module').then(
-            (m) => m.CrudsModule
-          ),
+          import('./views/cruds/cruds.module').then((m) => m.CrudsModule),
         data: { title: 'CRUDs', breadcrumb: 'CRUDs' },
       },
-
-      // Recherche
       {
         path: 'search',
         loadChildren: () =>
           import('./views/search-view/search-view.module').then(
             (m) => m.SearchViewModule
           ),
-        data: { title: 'Search', breadcrumb: 'SEARCH' },
       },
-
-      // Factures
       {
         path: 'invoice',
         loadChildren: () =>
           import('./views/invoice/invoice.module').then(
             (m) => m.InvoiceModule
           ),
-        data: { title: 'Invoice', breadcrumb: 'INVOICE' },
       },
-
-      // Événements
       {
-        path: 'events', // Route pour les événements
-        loadChildren: () =>
-          import('./views/event-list/event-list.module').then(
-            (m) => m.EventListModule
-          ),
+        path: 'events', // Add your component path here
+        component: EventListComponent, // Directly assign the component
         data: { title: 'Events', breadcrumb: 'EVENTS' },
       },
     ],
   },
   {
-    path: '**', // Page 404
+    path: '**',
     redirectTo: 'sessions/404',
   },
 ];

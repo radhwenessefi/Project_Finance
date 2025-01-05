@@ -1,12 +1,17 @@
 package tn.esprit.projectbackend.Service;
 
-import tn.esprit.projectbackend.Entity.Event;
-import tn.esprit.projectbackend.Repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tn.esprit.projectbackend.Entity.Event;
+import tn.esprit.projectbackend.Entity.EventType;
+import tn.esprit.projectbackend.Entity.User;
+import tn.esprit.projectbackend.Repository.EventRepository;
+import tn.esprit.projectbackend.Repository.TradeeRepository;
+import tn.esprit.projectbackend.Repository.UserRepository;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -14,57 +19,152 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
-    // Créer un événement
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TradeeRepository tradeeRepository;
+
+    // Create an event
     public Event createEvent(Event event) {
-        validateEvent(event);  // Validation des champs avant la création
+        validateEvent(event);
         return eventRepository.save(event);
     }
 
-    // Récupérer tous les événements
+    // Generate a pre-configured event
+    public Event generateEvent(String title, EventType eventType, String description, LocalDateTime startDate, LocalDateTime endDate, Double prizePool, Integer maxParticipants) {
+        Event event = new Event();
+        event.setEventTitle(title);
+        event.setEventType(eventType);
+        event.setDescription(description);
+        event.setEventStartDate(startDate);
+        event.setEventEndDate(endDate);
+        event.setPrizePool(prizePool);
+        event.setMaxParticipants(maxParticipants);
+        event.setParticipants(new HashSet<>());
+
+        return eventRepository.save(event);
+    }
+
+    // Get all events
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();  // Appelle findAll() de JpaRepository
+        return eventRepository.findAll();
     }
 
-    // Récupérer un événement par ID
+    // Get event by ID
     public Optional<Event> getEventById(Long id) {
-        return eventRepository.findById(id); // Appelle findById() pour un événement spécifique
+        return eventRepository.findById(id);
     }
 
-    // Mettre à jour un événement
+    // Update an event
     public Event updateEvent(Long id, Event updatedEvent) {
-        validateEvent(updatedEvent); // Validation des champs avant la mise à jour
+        validateEvent(updatedEvent);
         Optional<Event> existingEvent = eventRepository.findById(id);
         if (existingEvent.isPresent()) {
             Event event = existingEvent.get();
             event.setEventTitle(updatedEvent.getEventTitle());
             event.setEventType(updatedEvent.getEventType());
-            event.setLocation(updatedEvent.getLocation());
+            event.setDescription(updatedEvent.getDescription());
+            event.setEventStartDate(updatedEvent.getEventStartDate());
+            event.setEventEndDate(updatedEvent.getEventEndDate());
+            event.setMaxParticipants(updatedEvent.getMaxParticipants());
+            event.setPrizePool(updatedEvent.getPrizePool());
+            event.setParticipants(updatedEvent.getParticipants());
             return eventRepository.save(event);
         }
         return null;
     }
 
-    // Supprimer un événement par ID
+    // Delete an event
     public void deleteEvent(Long id) {
-        eventRepository.deleteById(id); // Supprime l'événement par ID
+        eventRepository.deleteById(id);
     }
 
-    // --- Méthodes de validation --- //
+    // Add a participant to an event
+    public void addParticipant(Long eventId, Long userId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (event.getParticipants().size() >= event.getMaxParticipants()) {
+            throw new RuntimeException("Event has reached its maximum capacity.");
+        }
+
+        event.getParticipants().add(user);
+        eventRepository.save(event);
+    }
+
+    // Calculate rankings for an event
+    public Map<Long, Double> calculateRankings(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        Map<Long, Double> rankings = new HashMap<>();
+        for (User participant : event.getParticipants()) {
+            Double profit = tradeeRepository.calculateProfitForUser(
+                    participant.getId(), event.getEventStartDate(), event.getEventEndDate());
+            rankings.put(participant.getId(), profit == null ? 0.0 : profit);
+        }
+
+        return rankings.entrySet().stream()
+                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+
+    // Award a winner for an event
+    public Optional<User> awardWinner(Long eventId) {
+        Optional<User> winner = determineWinner(eventId);
+        winner.ifPresent(user -> {
+            Event event = eventRepository.findById(eventId)
+                    .orElseThrow(() -> new RuntimeException("Event not found"));
+
+            user.setAccountBalance(user.getAccountBalance() + event.getPrizePool());
+            userRepository.save(user);
+        });
+        return winner;
+    }
+
+    // Determine the winner based on profit
+    public Optional<User> determineWinner(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        if (event.getParticipants().isEmpty()) {
+            throw new RuntimeException("No participants in this event.");
+        }
+
+        User winner = null;
+        double maxProfit = Double.NEGATIVE_INFINITY;
+
+        for (User participant : event.getParticipants()) {
+            Double profit = tradeeRepository.calculateProfitForUser(
+                    participant.getId(), event.getEventStartDate(), event.getEventEndDate());
+
+            if (profit != null && profit > maxProfit) {
+                maxProfit = profit;
+                winner = participant;
+            }
+        }
+
+        return Optional.ofNullable(winner);
+    }
+
+    // Validate event fields
     private void validateEvent(Event event) {
         if (event.getEventTitle() == null || event.getEventTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Le titre de l'événement est obligatoire.");
-        }
-        if (event.getEventTitle().length() < 3) {
-            throw new IllegalArgumentException("Le titre de l'événement doit comporter au moins 3 caractères.");
+            throw new IllegalArgumentException("Event title is required.");
         }
         if (event.getEventType() == null) {
-            throw new IllegalArgumentException("Le type de l'événement est obligatoire.");
+            throw new IllegalArgumentException("Event type is required.");
         }
-        if (event.getLocation() == null || event.getLocation().trim().isEmpty()) {
-            throw new IllegalArgumentException("Le lieu de l'événement est obligatoire.");
+        if (event.getPrizePool() == null || event.getPrizePool() <= 0) {
+            throw new IllegalArgumentException("Prize pool must be greater than 0.");
         }
-        if (event.getLocation().length() > 100) {
-            throw new IllegalArgumentException("Le lieu de l'événement ne doit pas dépasser 100 caractères.");
+        if (event.getMaxParticipants() == null || event.getMaxParticipants() <= 0) {
+            throw new IllegalArgumentException("Maximum participants must be greater than 0.");
         }
     }
 }

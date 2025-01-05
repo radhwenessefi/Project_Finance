@@ -1,20 +1,73 @@
-<div class="container">
-  <h1 class="header">Upcoming Events</h1>
-  <div class="event-grid">
-    <mat-card *ngFor="let event of events" class="event-card">
-      <mat-card-header>
-        <div mat-card-avatar class="event-avatar"></div>
-        <mat-card-title>{{ event.eventTitle }}</mat-card-title>
-        <mat-card-subtitle>Type: {{ event.eventType }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p><strong>Location:</strong> {{ event.location }}</p>
-        <p><strong>Date:</strong> {{ event.eventDate | date: 'mediumDate' }}</p>
-      </mat-card-content>
-      <mat-card-actions align="end">
-        <button mat-raised-button color="primary">View</button>
-        <button mat-stroked-button color="accent">Register</button>
-      </mat-card-actions>
-    </mat-card>
+<div>
+    <h2>Liste des Événements</h2>
+  
+    <!-- Table displaying events -->
+    <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; text-align: left;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Titre</th>
+          <th>Type</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let event of events">
+          <td>{{ event.id }}</td>
+          <td>{{ event.eventTitle }}</td>
+          <td>{{ event.eventType }}</td>
+          <td>
+            <button (click)="editEvent(event)">Modifier</button>
+            <button (click)="deleteEvent(event.id)">Supprimer</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <hr />
+  
+    <!-- Form to add a new event -->
+    <h3>Ajouter un Événement</h3>
+    <form (ngSubmit)="addEvent()" style="margin-bottom: 20px;">
+      <input
+        type="text"
+        placeholder="Titre"
+        [(ngModel)]="newEvent.eventTitle"
+        name="title"
+        required
+        style="margin-right: 10px;"
+      />
+      <input
+        type="text"
+        placeholder="Type"
+        [(ngModel)]="newEvent.eventType"
+        name="type"
+        required
+        style="margin-right: 10px;"
+      />
+      <button type="submit">Ajouter</button>
+    </form>
+  
+    <!-- Form to edit an existing event -->
+    <div *ngIf="selectedEvent">
+      <h3>Modifier un Événement</h3>
+      <form (ngSubmit)="updateEvent()" style="margin-bottom: 20px;">
+        <input
+          type="text"
+          [(ngModel)]="selectedEvent.eventTitle"
+          name="editTitle"
+          required
+          style="margin-right: 10px;"
+        />
+        <input
+          type="text"
+          [(ngModel)]="selectedEvent.eventType"
+          name="editType"
+          required
+          style="margin-right: 10px;"
+        />
+        <button type="submit">Mettre à jour</button>
+      </form>
+    </div>
   </div>
-</div>
+  

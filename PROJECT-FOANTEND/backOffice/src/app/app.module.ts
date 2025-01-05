@@ -3,14 +3,15 @@ import { RouterModule } from '@angular/router';
 import { BrowserModule, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LayoutModule } from '@angular/cdk/layout';
+import { EventListComponent } from './views/event-list/event-list.component'; // Import your component
+import { FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
 
-// import { GestureConfig } from '@angular/material/core';
 import {
   PerfectScrollbarModule,
   PERFECT_SCROLLBAR_CONFIG,
-  PerfectScrollbarConfigInterface
+  PerfectScrollbarConfigInterface,
 } from './shared/components/perfect-scrollbar';
-
 
 import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryDataService } from './shared/inmemory-db/inmemory-db.service';
@@ -24,15 +25,14 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ErrorHandlerService } from './shared/services/error-handler.service';
 import { TokenInterceptor } from './shared/interceptors/token.interceptor';
+import { EventService } from './shared/services/Event/event.service'; // Import du service Event
 
-
-// AoT requires an exported function for factories
 export function HttpLoaderFactory(httpClient: HttpClient) {
   return new TranslateHttpLoader(httpClient);
 }
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
-  suppressScrollX: true
+  suppressScrollX: true,
 };
 
 @NgModule({
@@ -40,31 +40,35 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     BrowserModule,
     BrowserAnimationsModule,
     SharedModule,
-    HttpClientModule,
+    HttpClientModule, // Import pour les requêtes HTTP
+    FormsModule, // Add FormsModule here
     LayoutModule,
+    MatSelectModule,
     PerfectScrollbarModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
+        deps: [HttpClient],
+      },
     }),
     InMemoryWebApiModule.forRoot(InMemoryDataService, { passThruUnknownUrl: true }),
     RouterModule.forRoot(rootRouterConfig, { useHash: false }),
   ],
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent,
+    EventListComponent, // Declare EventListComponent here
+  ],
   providers: [
     { provide: ErrorHandler, useClass: ErrorHandlerService },
-    // { provide: HAMMER_GESTURE_CONFIG, useClass: GestureConfig },
     { provide: PERFECT_SCROLLBAR_CONFIG, useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG },
-    // REQUIRED IF YOU USE JWT AUTHENTICATION
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
       multi: true,
     },
+    EventService, // Fournir le service Event
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

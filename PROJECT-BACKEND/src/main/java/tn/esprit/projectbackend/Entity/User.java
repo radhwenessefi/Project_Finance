@@ -10,17 +10,15 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Resource {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String resourceTitle;
-    String resourceType;
-    String url;
+    String username;
 
-    @ManyToOne
-    @JoinColumn(name = "training_session_id", nullable = false)
-    TrainingSession trainingSession; // Association with TrainingSession
+    String email;
+
+    Double accountBalance; // Virtual balance for trading competitions
 }

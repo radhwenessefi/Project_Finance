@@ -1,5 +1,6 @@
 package tn.esprit.projectbackend.Service;
 
+import tn.esprit.projectbackend.Entity.Resource;
 import tn.esprit.projectbackend.Entity.TrainingSession;
 import tn.esprit.projectbackend.Repository.TrainingSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,11 @@ public class TrainingSessionService {
             session.setSessionType(updatedSession.getSessionType());
             session.setLocation(updatedSession.getLocation());
             session.setMaxParticipants(updatedSession.getMaxParticipants());
+            session.setSessionDate(updatedSession.getSessionDate());
+            session.setResources(updatedSession.getResources());
             return trainingSessionRepository.save(session);
         }
-        return null; // Handle appropriately in real use case.
+        return null;
     }
 
     public void deleteTrainingSession(Long id) {

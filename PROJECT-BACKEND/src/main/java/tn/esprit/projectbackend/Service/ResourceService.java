@@ -33,6 +33,7 @@ public class ResourceService {
             resource.setResourceTitle(updatedResource.getResourceTitle());
             resource.setResourceType(updatedResource.getResourceType());
             resource.setUrl(updatedResource.getUrl());
+            resource.setTrainingSession(updatedResource.getTrainingSession());
             return resourceRepository.save(resource);
         }
         return null;
@@ -40,5 +41,9 @@ public class ResourceService {
 
     public void deleteResource(Long id) {
         resourceRepository.deleteById(id);
+    }
+
+    public List<Resource> getResourcesByTrainingSessionId(Long trainingSessionId) {
+        return resourceRepository.findByTrainingSession_Id(trainingSessionId);
     }
 }

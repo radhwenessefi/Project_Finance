@@ -8,8 +8,7 @@ import { EgretCalendarEvent } from '../../shared/models/event.model';
 import { AppCalendarService } from './app-calendar.service';
 import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
 import { AppConfirmService } from '../../shared/services/app-confirm/app-confirm.service';
-import { EventService } from '../../services/event.service';  // Import EventService
-import { Router } from '@angular/router';
+import { EventService } from '../../shared/services/Event/event.service';
 
 @Component({
   selector: 'app-calendar',
@@ -23,43 +22,109 @@ export class AppCalendarComponent implements OnInit {
   private dialogRef: MatDialogRef<CalendarFormDialogComponent>;
   public activeDayIsOpen: boolean = true;
   public refresh: Subject<any> = new Subject();
-  public events: CalendarEvent[] = [];
+  public events: EgretCalendarEvent[];
   private actions: CalendarEventAction[];
 
   constructor(
-    private eventService: EventService, // Inject EventService
-    private router: Router,
-    public dialog: MatDialog,  // Inject MatDialog
-    private confirmService: AppConfirmService,  // Inject AppConfirmService
-  ) {}
+    public dialog: MatDialog,
+    private calendarService: AppCalendarService,
+    private confirmService: AppConfirmService,
+    private eventService: EventService
+  ) {
+    this.actions = [
+      {
+        label: '<i class="material-icons icon-sm">edit</i>',
+        onClick: ({ event }: { event: CalendarEvent }): void => {
+          this.handleEvent('edit', event);
+        },
+      },
+      {
+        label: '<i class="material-icons icon-sm">close</i>',
+        onClick: ({ event }: { event: CalendarEvent }): void => {
+          this.removeEvent(event);
+        },
+      },
+    ];
+  }
 
   ngOnInit() {
     this.loadEvents();
   }
-
-  private initEvents(events): EgretCalendarEvent[] {
+  private getColorForEventType(eventType: string): { primary: string; secondary: string } {
+    const eventTypeColors: { [key: string]: { primary: string; secondary: string } } = {
+      TRADING_COMPETITION: { primary: '#1e90ff', secondary: '#D1E8FF' },
+      WORKSHOP: { primary: '#ff4081', secondary: '#FFE5EC' },
+      CONFERENCE: { primary: '#4caf50', secondary: '#C8E6C9' },
+      TRAINING_SESSION: { primary: '#ff9800', secondary: '#FFECB3' },
+    };
+    return eventTypeColors[eventType] || { primary: '#607d8b', secondary: '#CFD8DC' }; // Default color
+  }
+  
+  private initEvents(events): CalendarEvent[] {
     return events.map((event) => {
-      event.actions = this.actions;
-      return new EgretCalendarEvent(event);
+      const duration = this.getEventDuration(event.eventStartDate, event.eventEndDate);
+      return {
+        id: event.id, // Backend event ID
+        start: new Date(event.eventStartDate), // Map start date
+        end: new Date(event.eventEndDate), // Map end date
+        title: `${event.eventTitle} (${duration})`, // Include duration in the title
+        color: this.getColorForEventType(event.eventType), // Assign colors based on eventType
+        actions: this.actions, // Add event actions if available
+        draggable: true, // Allow dragging
+        resizable: {
+          beforeStart: true,
+          afterEnd: true,
+        },
+        meta: {
+          eventType: event.eventType,
+          notes: event.description,
+          maxParticipants: event.maxParticipants,
+          prizePool: event.prizePool,
+        },
+      };
+    });
+  }
+  
+  private getEventDuration(start: Date, end: Date): string {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffInMs = endDate.getTime() - startDate.getTime();
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+  
+    if (diffInDays <= 7) {
+      return `${diffInDays+1} day${diffInDays > 1 ? 's' : ''}`;
+    } else if (diffInDays <= 30) {
+      const weeks = Math.ceil(diffInDays / 7);
+      return `${weeks} week${weeks > 1 ? 's' : ''}`;
+    } else {
+      const months = Math.ceil(diffInDays / 30);
+      return `${months} month${months > 1 ? 's' : ''}`;
+    }
+  }
+    
+
+  public loadEvents() {
+    this.eventService.getAllEvents().subscribe((events: CalendarEvent[]) => {
+      this.events = this.initEvents(events);
     });
   }
 
-  public loadEvents() {
-    this.eventService.getAllEvents().subscribe(
-      (events: any[]) => {
-        this.events = events.map(event => ({
-          title: event.eventTitle,  // Display the event title
-          start: new Date(event.eventDate),  // Assuming your API provides a startDate
-          type: event.eventType, // Assuming your API provides an endDate
-          // Add other necessary event properties here
-        }));
-      },
-      (error) => {
-        console.error('Error fetching events:', error);  // Handle errors
-      }
-    );
-  }
+  public removeEvent(event) {
+    this.confirmService
+      .confirm({
+        title: 'Delete Event?',
+      })
+      .subscribe((res) => {
+        if (!res) {
+          return;
+        }
 
+        this.calendarService.deleteEvent(event._id).subscribe((events) => {
+          this.events = this.initEvents(events);
+          this.refresh.next(1);
+        });
+      });
+  }
 
   public addEvent() {
     this.dialogRef = this.dialog.open(CalendarFormDialogComponent, {
@@ -76,29 +141,57 @@ export class AppCalendarComponent implements OnInit {
       }
       let dialogAction = res.action;
       let responseEvent = res.event;
-      this.eventService.createEvent(responseEvent).subscribe((events) => {
+      this.calendarService.addEvent(responseEvent).subscribe((events) => {
         this.events = this.initEvents(events);
         this.refresh.next(true);
       });
     });
   }
 
-  public removeEvent(event) {
-    this.confirmService
-      .confirm({
-        title: 'Delete Event?',
-      })
-      .subscribe((res) => {
-        if (!res) {
-          return;
-        }
+  public handleEvent(action: string, event: EgretCalendarEvent): void {
+    // console.log(event)
+    this.dialogRef = this.dialog.open(CalendarFormDialogComponent, {
+      panelClass: 'calendar-form-dialog',
+      data: { event, action },
+      width: '450px',
+    });
 
-        this.eventService.deleteEvent(event.id).subscribe((events) => {  // Update to eventService
+    this.dialogRef.afterClosed().subscribe((res) => {
+      if (!res) {
+        return;
+      }
+      let dialogAction = res.action;
+      let responseEvent = res.event;
+
+      if (dialogAction === 'save') {
+        this.calendarService.updateEvent(responseEvent).subscribe((events) => {
           this.events = this.initEvents(events);
           this.refresh.next(1);
         });
-      });
+      } else if (dialogAction === 'delete') {
+        this.removeEvent(event);
+      }
+    });
   }
 
+  public dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
+    if (isSameMonth(date, this.viewDate)) {
+      if ((isSameDay(this.viewDate, date) && this.activeDayIsOpen === true) || events.length === 0) {
+        this.activeDayIsOpen = false;
+      } else {
+        this.activeDayIsOpen = true;
+        this.viewDate = date;
+      }
+    }
+  }
 
+  public eventTimesChanged({ event, newStart, newEnd }: CalendarEventTimesChangedEvent): void {
+    event.start = newStart;
+    event.end = newEnd;
+
+    this.calendarService.updateEvent(event).subscribe((events) => {
+      this.events = this.initEvents(events);
+      this.refresh.next(1);
+    });
+  }
 }

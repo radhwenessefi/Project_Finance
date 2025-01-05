@@ -10,17 +10,18 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Resource {
+public class Asset {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String resourceTitle;
-    String resourceType;
-    String url;
+    @Column(nullable = false, unique = true)
+    String assetName; // Name of the asset (e.g., Bitcoin, Apple Stock)
 
-    @ManyToOne
-    @JoinColumn(name = "training_session_id", nullable = false)
-    TrainingSession trainingSession; // Association with TrainingSession
+    @Column(nullable = false)
+    String assetType; // Type of asset (e.g., Crypto, Stock)
+
+    @Column(nullable = false)
+    Double currentPrice; // Current price of the asset
 }

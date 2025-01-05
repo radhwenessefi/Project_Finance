@@ -1,5 +1,6 @@
 package tn.esprit.projectbackend.Controller;
 
+import tn.esprit.projectbackend.Entity.Resource;
 import tn.esprit.projectbackend.Entity.TrainingSession;
 import tn.esprit.projectbackend.Service.TrainingSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +37,7 @@ public class TrainingSessionController {
     @PutMapping("/{id}")
     public ResponseEntity<TrainingSession> updateTrainingSession(@PathVariable Long id, @RequestBody TrainingSession session) {
         TrainingSession updatedSession = trainingSessionService.updateTrainingSession(id, session);
-        if (updatedSession != null) {
-            return ResponseEntity.ok(updatedSession);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return updatedSession != null ? ResponseEntity.ok(updatedSession) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

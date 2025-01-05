@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate; // Import pour utiliser les dates modernes
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -18,13 +19,21 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String eventTitle; 
-    // Utilisation de l'énumération pour le type d'événement
+    String eventTitle;
+
     @Enumerated(EnumType.STRING)
-    EventType eventType;
+    EventType eventType; // e.g., TRADING_COMPETITION
 
-    String location;
+    String description;
 
-    // Ajout d'une date pour l'événement
-    LocalDate eventDate;
+    LocalDateTime eventStartDate;
+
+    LocalDateTime eventEndDate;
+
+    Integer maxParticipants;
+
+    @ManyToMany
+    Set<User> participants; // Users participating in the event
+
+    Double prizePool; // Total prize pool for the competition
 }

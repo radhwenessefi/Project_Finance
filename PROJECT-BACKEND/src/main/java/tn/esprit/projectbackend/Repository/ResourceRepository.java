@@ -1,7 +1,12 @@
 package tn.esprit.projectbackend.Repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import tn.esprit.projectbackend.Entity.Resource;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
+@Repository
 public interface ResourceRepository extends JpaRepository<Resource, Long> {
+    List<Resource> findByTrainingSession_Id(Long trainingSessionId);
 }
