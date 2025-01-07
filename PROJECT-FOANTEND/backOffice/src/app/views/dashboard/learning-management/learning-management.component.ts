@@ -157,6 +157,9 @@ export class LearningManagementComponent implements OnInit {
       },
     });
   }
+  priceCache: { [key: string]: { price: number; timestamp: number } } = {};
+cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+
   addParticipantToEvent(userId: string, eventId: string): void {
     this.eventService.addParticipant(userId, eventId).subscribe({
       next: () => {
@@ -241,7 +244,7 @@ export class LearningManagementComponent implements OnInit {
           trades.map(async (trade: any) => {
             const assetName = trade.asset.assetName;
             const price = await this.fetchAssetPriceForTrade(assetName);
-            const completed = price > 0 ? ((trade.amount/price)-trade.profit)/trade.profit*100 : 0;
+            const completed = price > 0 ? (((trade.amount/price)-trade.profit)/trade.profit)*100 : 0;
         
             return {
               name: assetName,
@@ -267,12 +270,23 @@ export class LearningManagementComponent implements OnInit {
   }
   
   fetchAssetPriceForTrade(assetName: string): Promise<number> {
+    const now = Date.now();
+    const cachedPrice = this.priceCache[assetName.toLowerCase()];
+  
+    // Check if the cached price is still valid
+    if (cachedPrice && now - cachedPrice.timestamp < this.cacheDuration) {
+      return Promise.resolve(cachedPrice.price);
+    }
+  
+    // Fetch a new price if not cached or expired
     const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${assetName.toLowerCase()}&vs_currencies=usd`;
   
     return new Promise((resolve) => {
       this.http.get(apiUrl).subscribe({
         next: (data: any) => {
           const price = data[assetName.toLowerCase()]?.usd || 0;
+          // Update the cache
+          this.priceCache[assetName.toLowerCase()] = { price, timestamp: now };
           resolve(price);
         },
         error: (err) => {
@@ -282,6 +296,7 @@ export class LearningManagementComponent implements OnInit {
       });
     });
   }
+  
   
 
   ngOnInit(): void {
@@ -301,7 +316,7 @@ export class LearningManagementComponent implements OnInit {
 
       if (assetName && amount) {
         this.fetchAssetPrice(assetName, amount, (price: number) => {
-          const profit = price > 0 ? (amount / price).toFixed(2) : 0;
+          const profit = price > 0 ? (amount / price): 0;
 
           const trade = {
             user: {
