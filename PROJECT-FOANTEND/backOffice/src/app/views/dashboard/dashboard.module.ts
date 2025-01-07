@@ -22,10 +22,16 @@ import { SharedPipesModule } from '../../shared/pipes/shared-pipes.module';
 import { DashboardRoutes } from './dashboard.routing';
 import { AnalyticsComponent } from './analytics/analytics.component';
 import { DashboardDarkComponent } from './dashboard-dark/dashboard-dark.component';
-import { CryptocurrencyComponent } from './cryptocurrency/cryptocurrency.component';
 import { DefaultDashboardComponent } from './default-dashboard/default-dashboard.component';
 import { LearningManagementComponent } from './learning-management/learning-management.component';
 import { AnalyticsAltComponent } from './analytics-alt/analytics-alt.component';
+import { AppUsersComponent } from '../others/app-users/app-users.component';
+import { CryptocurrencyComponent } from './cryptocurrency/cryptocurrency.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   imports: [
@@ -42,20 +48,28 @@ import { AnalyticsAltComponent } from './analytics-alt/analytics-alt.component';
     MatTableModule,
     MatGridListModule,
     NgChartsModule,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    FormsModule,
+    ReactiveFormsModule,
+    MatInputModule,
     NgxEchartsModule.forRoot({
       echarts
     }),
     NgApexchartsModule,
     SharedPipesModule,
-    RouterModule.forChild(DashboardRoutes)
+    HttpClientModule,
+    RouterModule.forChild(DashboardRoutes),
+    AppUsersComponent
   ],
   declarations: [
     AnalyticsComponent,
     DashboardDarkComponent,
-    CryptocurrencyComponent,
     DefaultDashboardComponent,
     LearningManagementComponent,
-    AnalyticsAltComponent],
+    AnalyticsAltComponent,
+    CryptocurrencyComponent],
   exports: []
 })
 export class DashboardModule {

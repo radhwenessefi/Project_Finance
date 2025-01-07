@@ -1,0 +1,18 @@
+.user-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid transparent; /* Default border color */
+  }
+  
+  .user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .selected {
+    border: 2px solid #0081ff; /* Highlight selected card with a blue border */
+    box-shadow: 0px 8px 20px rgba(0, 129, 255, 0.3);
+    transform: translateY(-5px); /* Keep selected card in place */
+  }
+  

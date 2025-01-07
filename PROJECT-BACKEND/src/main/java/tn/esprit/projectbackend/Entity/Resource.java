@@ -20,7 +20,5 @@ public class Resource {
     String resourceType;
     String url;
 
-    @ManyToOne
-    @JoinColumn(name = "training_session_id", nullable = false)
-    TrainingSession trainingSession; // Association with TrainingSession
+
 }

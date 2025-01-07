@@ -68,7 +68,7 @@ export class CalendarFormDialogComponent implements OnInit {
         secondary: new UntypedFormControl(event.color.secondary),
       }),
       meta: this.formBuilder.group({
-        notes: new UntypedFormControl(event.meta?.notes || ''),
+        notes: new UntypedFormControl(event.meta?.notes || '', [Validators.required]),
       }),
     });
   }

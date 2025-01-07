@@ -33,10 +33,7 @@ public class ResourceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/session/{trainingSessionId}")
-    public List<Resource> getResourcesByTrainingSessionId(@PathVariable Long trainingSessionId) {
-        return resourceService.getResourcesByTrainingSessionId(trainingSessionId);
-    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Resource> updateResource(@PathVariable Long id, @RequestBody Resource resource) {

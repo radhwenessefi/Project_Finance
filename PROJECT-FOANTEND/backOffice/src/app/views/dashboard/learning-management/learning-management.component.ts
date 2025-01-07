@@ -1,109 +1,29 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { ResourcePopupComponent } from 'app/resource-popup/resource-popup.component';
+import { ResourceService } from 'app/Resource/resource.service';
 import { egretAnimations } from 'app/shared/animations/egret-animations';
+import { EventService } from 'app/shared/services/Event/event.service';
+import { TradeService } from 'app/Trade/trade.service';
 
 @Component({
   selector: 'app-learning-management',
   templateUrl: './learning-management.component.html',
   styleUrls: ['./learning-management.component.scss'],
   animations: egretAnimations
-
 })
 export class LearningManagementComponent implements OnInit {
-  welcomeProgressChart = {
-    series: [76],
-    chartOptions: {
-      chart: {
-        type: 'radialBar',
-        offsetY: -20,
-        sparkline: {
-          enabled: true,
-        },
-      },
-      grid: {
-        padding: {
-          left: 0,
-          right: 0,
-          bottom: 10,
-        },
-      },
-      plotOptions: {
-        radialBar: {
-          startAngle: -90,
-          endAngle: 90,
-          offsetY: 0,
-          hollow: {
-            margin: 0,
-            size: '60%',
-          },
-          dataLabels: {
-            showOn: 'always',
-            name: {
-              show: true,
-              fontSize: '13px',
-              fontWeight: '600',
-              offsetY: -5,
-              color: '#828D99',
-            },
-            value: {
-              color: '#304156',
-              fontSize: '24px',
-              fontWeight: '600',
-              offsetY: -40,
-              show: true,
-            },
-          },
-          track: {
-            background: '#eee',
-            strokeWidth: '100%',
-          },
-        },
-      },
-      colors: ['#0081FF', '#eee'],
-      stroke: {
-        lineCap: 'round',
-      },
-      labels: ['Progress'],
-      responsive: [
-        {
-          breakpoint: 767,
-          options: {
-            chart: {
-              offsetX: 0,
-              offsetY: 0,
-            },
-          },
-        },
-      ],
-    },
-  };
-
+  welcomeProgressChart = { /* ... existing chart config ... */ };
+  tradeForm: FormGroup;
+  assets = [
+    { id: 1, assetName: 'Bitcoin' },
+    { id: 2, assetName: 'Ethereum' },
+    { id: 3, assetName: 'Litecoin' },
+  ];
   studyChart = {
-    series: [
-      {
-        name: 'Angular',
-        data: [50, 50, 80, 80, 80, 60, 70],
-        type: 'bar',
-        itemStyle: {
-          barBorderRadius: [0, 0, 10, 10],
-        },
-        stack: 'one',
-      },
-      {
-        name: 'React',
-        data: [70, 80, 90, 100, 70, 80, 65],
-        type: 'bar',
-        stack: 'one',
-      },
-      {
-        name: 'Javascript',
-        data: [65, 80, 70, 100, 90, 70, 55],
-        type: 'bar',
-        itemStyle: {
-          barBorderRadius: [10, 10, 0, 0],
-        },
-        stack: 'one',
-      },
-    ],
+    series: [],
     chartOptions: {
       chart: {
         type: 'bar',
@@ -119,7 +39,6 @@ export class LearningManagementComponent implements OnInit {
         offsetX: -35,
         itemMargin: {
           horizontal: 10,
-          // vertical: 15,
         },
         markers: {
           width: 10,
@@ -133,18 +52,15 @@ export class LearningManagementComponent implements OnInit {
           columnWidth: '20px',
         },
       },
-
       dataLabels: {
         enabled: false,
       },
-
-      colors: ['#0081ff', '#e95455', '#e97d23'],
+      colors: [],
       xaxis: {
         axisBorder: {
           show: false,
         },
-
-        categories: ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri'],
+        categories: [],
       },
       yaxis: {
         show: false,
@@ -155,96 +71,293 @@ export class LearningManagementComponent implements OnInit {
     },
   };
 
-  courses = [
-    {
-      icon: 'assets/images/logos/angular.png',
-      date: new Date('20 May, 2020'),
-      name: 'Angular Beyond The Basics',
-      progress: 90
-    },
-    {
-      icon: 'assets/images/logos/react.png',
-      date: new Date('10 June, 2020'),
-      name: 'React Development Course',
-      progress: 60
-    },
-    {
-      icon: 'assets/images/logos/vue.png',
-      date: new Date('20 July, 2020'),
-      name: 'Vue for busy developers',
-      progress: 50
-    },
-    {
-      icon: 'assets/images/logos/sass.png',
-      date: new Date('20 July, 2020'),
-      name: 'Complete SASS Course',
-      progress: 100
-    },
-    {
-      icon: 'assets/images/logos/bootstrap.png',
-      date: new Date('20 July, 2020'),
-      name: 'Bootstrap for everyone',
-      progress: 100
+  courses = [ /* ... existing courses ... */ ];
+  results = [];
+  loading: boolean = false;
+  error: string | null = null;
+  selectedUser: any = null;
+  reminders = [ /* ... existing reminders ... */ ];
+  resources = [];
+  public events: [];
+  resourceTypeIcons: { [key: string]: string } = {
+    VIDEO: 'play_circle', // Icon for videos
+    PDF: 'picture_as_pdf', // Icon for PDFs
+    ARTICLE: 'description', // Icon for articles
+    TOOL: 'build', // Icon for tools
+  };
+  constructor(  private dialog: MatDialog,    private tradeeService: TradeService, private fb: FormBuilder, private http: HttpClient, private eventService: EventService, private resourceService: ResourceService) {}
+  openCreateResourcePopup(): void {
+    const dialogRef = this.dialog.open(ResourcePopupComponent, {
+      width: '500px',
+      data: {},
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Save the resource to the backend
+        this.resourceService.createResource(result).subscribe({
+          next: (response) => {
+            console.log('Resource created successfully:', response);
+            this.loadResources(); // Refresh the resource list
+          },
+          error: (err) => {
+            console.error('Error creating resource:', err);
+          },
+        });
+      }
+    });
+  }
+  loadResources(): void {
+    this.resourceService.getAllResourcess().subscribe({
+      next: (resources: any[]) => {
+        this.resources = resources.map(resource => ({
+          id: resource.id,
+          title: resource.resourceTitle,
+          type: resource.resourceType,
+          url: resource.url,
+          icon: this.resourceTypeIcons[resource.resourceType],
+        }));
+      },
+      error: (err) => {
+        console.error('Error loading resources:', err);
+      },
+    });
+  }
+  onUserSelected(user: any): void {
+    this.selectedUser = user;
+    this.fetchTradesByUserId(user.id);
+    this.tradeForm.get('userId')?.setValue(user.id);
+    this.loadEvents();
+  }
+  loadEvents(): void {
+    this.eventService.getAllEvents().subscribe({
+      next: (events: any[]) => {
+        const currentDate = new Date();
+  
+        this.reminders = events
+          .filter(
+            (event) =>
+              new Date(event.eventStartDate) <= currentDate &&
+              new Date(event.eventEndDate) >= currentDate
+          )
+          .map((event) => ({
+            id: event.id,
+            title: event.eventTitle,
+            date: `${new Date(event.eventStartDate).toLocaleDateString()} - ${new Date(
+              event.eventEndDate
+            ).toLocaleDateString()}`,
+            participants: event.participants,
+            type: event.eventType,
+          }));
+      },
+      error: (err) => {
+        console.error('Error loading events:', err);
+      },
+    });
+  }
+  addParticipantToEvent(userId: string, eventId: string): void {
+    this.eventService.addParticipant(userId, eventId).subscribe({
+      next: () => {
+        console.log('Participant added successfully');
+        this.loadEvents(); 
+      },
+      error: (err) => {
+        console.error('Error adding participant:', err);
+        this.loadEvents(); 
+
+      },
+    });
+  }
+  isParticipant(event: any, userId: number): boolean {
+    return event.participants.some((participant: any) => participant.id === userId);
+  }
+  eventTypeIcons: { [key: string]: string } = {
+    TRADING_COMPETITION: 'emoji_events', 
+    TRAINING_SESSION: 'school',         
+    WORKSHOP: 'build',                  
+    CONFERENCE: 'groups',               
+  };
+  groupTradesByAssetAndDate(trades: any[]): { [key: string]: { date: string, profit: number }[] } {
+    return trades.reduce((acc, trade) => {
+      const assetName = trade.asset.assetName;
+      const tradeDate = new Date(trade.tradeDate).toLocaleDateString();
+      const key = `${assetName}-${tradeDate}`;
+
+      if (!acc[assetName]) {
+        acc[assetName] = [];
+      }
+
+      const existingEntry = acc[assetName].find(entry => entry.date === tradeDate);
+      if (existingEntry) {
+        existingEntry.amount += trade.amount;
+      } else {
+        acc[assetName].push({ date: tradeDate, profit: trade.amount });
+      }
+
+      return acc;
+    }, {});
+  }
+
+  updateChart(groupedData: { [key: string]: { date: string, profit: number }[] }): void {
+    const series = [];
+    const colors = [];
+    const uniqueAssets = Object.keys(groupedData);
+
+    uniqueAssets.forEach((asset, index) => {
+      const assetData = groupedData[asset];
+      const dates = assetData.map(entry => entry.date);
+      const profits = assetData.map(entry => entry.profit);
+
+      series.push({
+        name: asset,
+        data: profits,
+        type: 'bar',
+        stack: 'one',
+      });
+
+      colors.push(this.generateColor(index));
+      if (index === 0) {
+        this.studyChart.chartOptions.xaxis.categories = dates;
+      }
+    });
+
+    this.studyChart.series = series;
+    this.studyChart.chartOptions.colors = colors;
+  }
+
+  generateColor(index: number): string {
+    const colors = ['#0081FF', '#E95455', '#E97D23', '#3AB54A', '#8A2BE2'];
+    return colors[index % colors.length];
+  }
+
+  fetchTradesByUserId(userId: number): void {
+        this.loading = true;
+  
+    this.tradeeService.getTradesByUserId(userId).subscribe({
+      next: async (trades) => {
+        const updatedResults = await Promise.all(
+          trades.map(async (trade: any) => {
+            const assetName = trade.asset.assetName;
+            const price = await this.fetchAssetPriceForTrade(assetName);
+            const completed = price > 0 ? (trade.profit-trade.amount/price).toFixed(2) : 0;
+  
+            return {
+              name: assetName,
+              color: 'primary',
+              date: new Date(trade.tradeDate).toLocaleDateString(),
+              completed: completed,
+            };
+          })
+        );
+  
+        this.results = updatedResults;
+  
+        const groupedData = this.groupTradesByAssetAndDate(trades);
+        this.updateChart(groupedData);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching trades:', err);
+        this.error = 'Failed to fetch trades. Please try again later.';
+        this.loading = false;
+      },
+    });
+  }
+  
+  fetchAssetPriceForTrade(assetName: string): Promise<number> {
+    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${assetName.toLowerCase()}&vs_currencies=usd`;
+  
+    return new Promise((resolve) => {
+      this.http.get(apiUrl).subscribe({
+        next: (data: any) => {
+          const price = data[assetName.toLowerCase()]?.usd || 0;
+          resolve(price);
+        },
+        error: (err) => {
+          console.error(`Error fetching price for ${assetName}:`, err);
+          resolve(0); // Default to 0 in case of an error
+        },
+      });
+    });
+  }
+  
+
+  ngOnInit(): void {
+    this.tradeForm = this.fb.group({
+      userId: [null, Validators.required],
+      asset: ['', Validators.required],
+      profit: [{ value: 0, disabled: true }],
+      amount: [0, [Validators.required, Validators.min(0)]],
+    });
+    this.loadResources();
+  }
+  onSubmit(): void {
+    if (this.tradeForm.valid) {
+      const assetName = this.tradeForm.get('asset')?.value;
+      const amount = this.tradeForm.get('amount')?.value;
+      const assetNamee = this.mapAssetIdToName(assetName);
+
+      if (assetName && amount) {
+        this.fetchAssetPrice(assetName, amount, (price: number) => {
+          const profit = price > 0 ? (amount / price).toFixed(2) : 0;
+
+          const trade = {
+            user: {
+              id: this.selectedUser?.id,
+              username: this.selectedUser?.username,
+              email: this.selectedUser?.email,
+              accountBalance: this.selectedUser?.accountBalance,
+            },
+            asset: {
+              id: assetName, 
+              assetName: assetNamee,
+              assetType: 'Crypto', 
+            },
+            profit: profit,
+            amount: amount,
+            tradeDate: new Date().toISOString(), 
+          };
+  
+          this.tradeeService.createTrade(trade).subscribe({
+            next: (response) => {
+              console.log('Trade created successfully:', response);
+              this.fetchTradesByUserId(this.selectedUser.id)
+            },
+            error: (error) => {
+              console.error('Error creating trade:', error);
+            },
+          });
+        });
+      }
     }
-  ];
+  }
+  mapAssetIdToName(assetId: number): string {
+    const asset = this.assets.find(a => a.id == assetId);
+    return asset ? asset.assetName : '';
+  }
+  fetchAssetPrice(assetId: number, amount: number, callback: (price: number) => void): void {
+    const assetName = this.mapAssetIdToName(assetId);
 
+    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${assetName}&vs_currencies=usd`;
 
-  results = [
-    {
-      name: 'React',
-      color: 'primary',
-      date: '24 March',
-      completed: 60,
-    },
-    {
-      name: 'Angular',
-      color: 'accent',
-      date: '04 Feb',
-      completed: 20,
-    },
-    {
-      name: 'Vue',
-      color: 'warn',
-      date: '02 Feb',
-      completed: 10,
-    },
-    {
-      name: 'CSS',
-      color: 'primary',
-      date: '02 Feb',
-      completed: 85,
-    },
-    {
-      name: 'HTML',
-      color: 'primary',
-      date: '02 Jan',
-      completed: 96,
-    },
-  ];
+    this.http.get(apiUrl).subscribe({
+      next: (data: any) => {
+        const price = data[assetName.toLocaleLowerCase()]?.usd || 0;
+        console.log(data)
+        console.log(data[assetName.toLocaleLowerCase()])
+        const profit = price > 0 ? (amount / price).toFixed(2) : 0;
 
-  reminders = [
-    {
-      title: 'Data structure test',
-      date: '23 December 2019',
-      icon: 'view_week'
-    },
-    {
-      title: 'Design pattern test',
-      date: '24 December 2019',
-      icon: 'library_books'
-    },
-    {
-      title: 'Algorithm test',
-      date: '24 December 2019',
-      icon: 'games'
-    },
-    {
-      title: 'Code organizing test',
-      date: '27 December 2019',
-      icon: 'library_books'
-    }
-  ]
-  constructor() {}
+        this.tradeForm.get('profit')?.setValue(profit);
+        console.log('Trade Details:', this.tradeForm.value);
+        callback(price);
 
-  ngOnInit(): void {}
+      },
+      error: (err) => {
+        console.error('Error fetching asset price:', err);
+        callback(0);
+      },
+    });
+  }
 }
+
+

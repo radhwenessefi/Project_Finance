@@ -54,14 +54,15 @@
         <div class="flex flex-col w-full">
      
 
-          <mat-form-field class="">
-                <input 
-                matInput 
-                name="eventType" 
-                formControlName="eventType" 
-                placeholder="Event Type" 
-                required>
-                </mat-form-field>
+          <mat-form-field>
+            <mat-label>Event Type</mat-label>
+            <select matNativeControl required formControlName="eventType">
+              <option value="TRADING_COMPETITION">Trading</option>
+              <option value="TRAINING_SESSION">Training</option>
+              <option value="WORKSHOP">Workshop</option>
+              <option value="CONFERENCE">Conference</option>
+            </select>
+          </mat-form-field>
                 <mat-form-field  class="">
 
                   <input 

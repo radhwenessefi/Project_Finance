@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>Create New Resource</h2>
+<mat-dialog-content>
+  <form [formGroup]="resourceForm">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Resource Title</mat-label>
+      <input matInput formControlName="resourceTitle" placeholder="Enter resource title" required>
+      <mat-error *ngIf="resourceForm.get('resourceTitle')?.hasError('required')">Title is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Resource Type</mat-label>
+      <mat-select formControlName="resourceType" required>
+        <mat-option *ngFor="let type of resourceTypes" [value]="type.value">{{ type.label }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="resourceForm.get('resourceType')?.hasError('required')">Type is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>URL</mat-label>
+      <input matInput formControlName="url" placeholder="Enter resource URL" required>
+      <mat-error *ngIf="resourceForm.get('url')?.hasError('required')">URL is required</mat-error>
+      <mat-error *ngIf="resourceForm.get('url')?.hasError('pattern')">Enter a valid URL</mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!resourceForm.valid">Submit</button>
+</mat-dialog-actions>

@@ -36,7 +36,6 @@ public class TrainingSessionService {
             session.setLocation(updatedSession.getLocation());
             session.setMaxParticipants(updatedSession.getMaxParticipants());
             session.setSessionDate(updatedSession.getSessionDate());
-            session.setResources(updatedSession.getResources());
             return trainingSessionRepository.save(session);
         }
         return null;

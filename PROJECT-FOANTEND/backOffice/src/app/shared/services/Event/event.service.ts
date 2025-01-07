@@ -27,11 +27,14 @@ export class EventService {
 
   // Mettre à jour un événement existant
   updateEvent(id: string, event: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/update/${id}`, event);
+    return this.http.put<any>(`${this.apiUrl}/${id}`, event);
   }
 
   // Supprimer un événement par ID
   deleteEvent(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  addParticipant(userId: string, eventId: string): Observable<any>{
+    return this.http.post<any>(`${this.apiUrl}/${eventId}/add-participant/${userId}`,{});
   }
 }

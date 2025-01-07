@@ -21,7 +21,4 @@ public class Asset {
 
     @Column(nullable = false)
     String assetType; // Type of asset (e.g., Crypto, Stock)
-
-    @Column(nullable = false)
-    Double currentPrice; // Current price of the asset
 }

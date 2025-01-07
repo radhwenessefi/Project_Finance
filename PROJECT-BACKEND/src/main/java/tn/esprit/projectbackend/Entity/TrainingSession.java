@@ -31,6 +31,5 @@ public class TrainingSession {
     // Ajout d'un champ pour représenter la date de la session
     LocalDate sessionDate;
 
-    @OneToMany(mappedBy = "trainingSession", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Resource> resources; // Association with Resource
+
 }

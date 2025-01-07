@@ -27,6 +27,27 @@ import { ErrorHandlerService } from './shared/services/error-handler.service';
 import { TokenInterceptor } from './shared/interceptors/token.interceptor';
 import { EventService } from './shared/services/Event/event.service'; // Import du service Event
 
+import { CryptocurrencyComponent } from './views/dashboard/cryptocurrency/cryptocurrency.component';
+
+import { CommonModule } from '@angular/common';
+import { MatButtonModule as MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule as MatChipsModule } from '@angular/material/chips';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule as MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule as MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTableModule as MatTableModule } from '@angular/material/table';
+import { MatTabsModule as MatTabsModule } from '@angular/material/tabs';
+import { NgChartsModule } from 'ng2-charts';
+import { NgxEchartsModule } from 'ngx-echarts';
+import * as echarts from 'echarts';
+
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { AppUsersComponent } from './views/others/app-users/app-users.component';
+
 export function HttpLoaderFactory(httpClient: HttpClient) {
   return new TranslateHttpLoader(httpClient);
 }
@@ -37,6 +58,24 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
 
 @NgModule({
   imports: [
+    CommonModule,
+    MatIconModule,
+    MatCardModule,
+    MatMenuModule,
+    MatProgressBarModule,
+    MatExpansionModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatListModule,
+    MatTabsModule,
+    MatTableModule,
+    MatGridListModule,
+    NgChartsModule,
+    NgxEchartsModule.forRoot({
+      echarts
+    }),
+    NgApexchartsModule,
+   
     BrowserModule,
     BrowserAnimationsModule,
     SharedModule,
@@ -57,8 +96,9 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   ],
   declarations: [
     AppComponent,
-    EventListComponent, // Declare EventListComponent here
+    EventListComponent
   ],
+
   providers: [
     { provide: ErrorHandler, useClass: ErrorHandlerService },
     { provide: PERFECT_SCROLLBAR_CONFIG, useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG },

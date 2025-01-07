@@ -1,378 +1,268 @@
-import { Component, OnInit } from "@angular/core";
-import { egretAnimations } from "app/shared/animations/egret-animations";
-import { ThemeService } from "app/shared/services/theme.service";
+import { Component, OnInit } from '@angular/core';
+import { CryptocurrencyService } from 'app/shared/services/Event/CryptocurrencyService';
+import { ThemeService } from 'app/shared/services/theme.service';
 import tinyColor from 'tinycolor2';
 
+import { StrategiesService } from 'app/shared/services/Event/StrategiesService';
+import { SentimentAIService } from 'app/shared/services/Event/SentimentAIService';
+
 @Component({
-  selector: "app-cryptocurrency",
-  templateUrl: "./cryptocurrency.component.html",
-  styleUrls: ["./cryptocurrency.component.scss"],
-  animations: egretAnimations
+  selector: 'app-cryptocurrency',
+  templateUrl: './cryptocurrency.component.html',
+  styleUrls: ['./cryptocurrency.component.scss'],
 })
 export class CryptocurrencyComponent implements OnInit {
+  cryptoPrices: any;
   cryptoChart: any;
-  cryptoDonutChart: any;
-  activeTrades: any[];
-  trendingCurrencies: any[];
-  
-  constructor(    
-    private themeService: ThemeService
-  ) {}
+  inputText: string = '';
+  sentimentScore: number | null = null;
+  sentimentLabel: string = '';
+  loading: boolean = false;
+  // Propriétés supplémentaires pour les données affichées
+  investmentAmount: number = 15000; // Exemple de montant d'investissement
+  profitAmount: number = 3000; // Exemple de montant de profit
+  transactionCount: number = 120; // Exemple de nombre de transactions
+  btcChangePercentage: number = 0; // Variation en pourcentage de Bitcoin
+  ethChangePercentage: number = 0; // Variation en pourcentage d'Ethereum
+  ltcChangePercentage: number = 0; // Variation en pourcentage de Litecoin
+  eurConversionRate: number = 0.94; // Exemple de taux de conversion USD → EUR
+ // Entrées utilisateur
 
-  ngOnInit() {
-    this.themeService.onThemeChange.subscribe(activeTheme => {
+  dcaInterval: number = 7; // Intervalle DCA (jours)
+  dipThreshold: number = 0.1; // Seuil pour Buy the Dip
+
+  // Résultats des stratégies
+  dcaResult: number = 0;
+  buyTheDipResult: number = 0;
+  hodlResult: number = 0;
+
+  prices: number[] = []; // Données historiques des prix (simulées)
+  chartOptions: any;
+  showExplanation: boolean = false;
+
+toggleExplanation(): void {
+  this.showExplanation = !this.showExplanation;
+}
+
+
+  constructor(
+    private cryptoService: CryptocurrencyService,
+    private themeService: ThemeService,private strategiesService: StrategiesService,private sentimentAIService: SentimentAIService
+  ) {}
+ /* analyzeSentiment(): void {
+    if (!this.inputText) return;
+
+    this.sentimentScore = this.sentimentAIService.analyzeSentiment(this.inputText);
+    this.sentimentLabel =
+      this.sentimentScore > 0.5
+        ? 'Positif'
+        : this.sentimentScore < 0.5
+        ? 'Négatif'
+        : 'Neutre';
+  }*/
+  ngOnInit(): void {
+    //this.loading = true;
+  // this.sentimentAIService.loadModel();
+    this.loading = false;
+     // Simuler des données historiques pour le test
+     this.prices = [50000, 48000, 49000, 47000, 46000, 45000, 47000, 44000, 43000, 45000];
+
+
+     this.prices = Array.from({ length: 30 }, (_, i) => 50000 + Math.random() * 2000 - 1000);
+    this.themeService.onThemeChange.subscribe((activeTheme) => {
       this.initCryptoChart(activeTheme);
     });
     this.initCryptoChart(this.themeService.activatedTheme);
-
-    this.cryptoDonutChart = {
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "3%",
-        containLabel: true
-      },
-      color: ["#03A9F4", "#039BE5", "#fcc02e"],
+    this.fetchCryptoData();
+  }
+   // Calcul des stratégies
+   calculateStrategies(): void {
+    const seuil = this.dipThreshold / 100; // Convertir le seuil en pourcentage
+    if (!this.prices || this.prices.length === 0) {
+      console.error('Les prix ne sont pas disponibles pour le calcul.');
+      return;
+    }
+  
+    // Résultats de Buy the Dip
+    const buyTheDipResult = this.strategiesService.calculateBuyTheDip(this.prices, seuil, this.investmentAmount);
+    this.buyTheDipResult = buyTheDipResult.profitLoss;
+  
+    // Résultats de DCA
+    const dcaResult = this.strategiesService.calculateDCA(this.prices, this.investmentAmount, this.dcaInterval);
+    this.dcaResult = dcaResult.profitLoss;
+  
+    // Résultats de HODL
+    const hodlResult = this.strategiesService.calculateHODL(this.prices, this.investmentAmount);
+    this.hodlResult = hodlResult.profitLoss;
+  
+    // Configure le graphique pour comparer les stratégies
+    this.chartOptions = {
       tooltip: {
-        show: false,
-        trigger: "item",
-        formatter: "{a} <br/>{b}: {c} ({d}%)"
+        trigger: 'axis',
+        formatter: params => {
+          let tooltipText = `${params[0].axisValue}<br>`;
+          params.forEach(param => {
+            tooltipText += `${param.seriesName}: ${param.data.toFixed(2)} USD<br>`;
+          });
+          return tooltipText;
+        }
       },
-      xAxis: [
-        {
-          axisLine: {
-            show: false
-          },
-          splitLine: {
-            show: false
-          }
+      legend: {
+        data: ['DCA', 'Buy the Dip', 'HODL'],
+        top: '10'
+      },
+      xAxis: {
+        type: 'category',
+        data: this.prices.map((_, i) => `Jour ${i + 1}`)
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: '${value}'
         }
-      ],
-      yAxis: [
-        {
-          axisLine: {
-            show: false
-          },
-          splitLine: {
-            show: false
-          }
-        }
-      ],
-
+      },
       series: [
         {
-          name: "Sessions",
-          type: "pie",
-          radius: ["65%", "85%"],
-          center: ["50%", "50%"],
-          avoidLabelOverlap: false,
-          hoverOffset: 5,
-          stillShowZeroSum: false,
-          label: {
-            normal: {
-              show: false,
-              position: "center",
-              textStyle: {
-                fontSize: "13",
-                fontWeight: "normal"
-              },
-              formatter: "{a}"
-            },
-            emphasis: {
-              show: true,
-              textStyle: {
-                fontSize: "15",
-                fontWeight: "normal",
-                color: "rgba(0, 0, 0, 0.8)"
-              },
-              formatter: "{b} \n{c} ({d}%)"
-            }
-          },
-          labelLine: {
-            normal: {
-              show: false
-            }
-          },
-          data: [
-            {
-              value: 335,
-              name: "Direct"
-            },
-            {
-              value: 310,
-              name: "Search Eng."
-            },
-            { value: 148, name: "Social" }
-          ],
-          itemStyle: {
-            emphasis: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: "rgba(0, 0, 0, 0.5)"
-            }
-          }
+          name: 'DCA',
+          data: dcaResult.chartData.map(data => data.value),
+          type: 'line',
+          smooth: true,
+          areaStyle: {}
+        },
+        {
+          name: 'Buy the Dip',
+          data: buyTheDipResult.chartData.map(data => data.value),
+          type: 'line',
+          smooth: true,
+          areaStyle: {}
+        },
+        {
+          name: 'HODL',
+          data: hodlResult.chartData.map(data => data.value),
+          type: 'line',
+          smooth: true,
+          areaStyle: {}
         }
       ]
     };
-    this.activeTrades = [
-      {
-        icon: "assets/images/cryptocurrencies/BTC.png",
-        currency: "Bitcoin",
-        balance: 3000,
-        buyingRate: 450,
-        currentRate: 450,
-        profitLoss: 400,
-        lastPrice: 300
-      },
-      {
-        icon: "assets/images/cryptocurrencies/ADA.png",
-        currency: "Bitcoin",
-        balance: 3000,
-        buyingRate: 450,
-        currentRate: 450,
-        profitLoss: 400,
-        lastPrice: 300
-      },
-      {
-        icon: "assets/images/cryptocurrencies/LTC.png",
-        currency: "Bitcoin",
-        balance: 3000,
-        buyingRate: 450,
-        currentRate: 450,
-        profitLoss: 400,
-        lastPrice: 300
-      },
-      {
-        icon: "assets/images/cryptocurrencies/AE.png",
-        currency: "Bitcoin",
-        balance: 3000,
-        buyingRate: 450,
-        currentRate: 450,
-        profitLoss: 400,
-        lastPrice: 300
-      }
-    ];
-
-    this.trendingCurrencies = [
-      {
-        currency: "Bitcoin",
-        rate: 3800
-      },
-      {
-        currency: "Bitcoin",
-        rate: 3800
-      },
-      {
-        currency: "Bitcoin",
-        rate: 3800
-      },
-      {
-        currency: "Bitcoin",
-        rate: 3800
-      }
-    ];
   }
+  
+  
 
-  initCryptoChart(theme) {
+  fetchCryptoData(): void {
+    this.cryptoService.getCryptoPrices().subscribe({
+      next: (data) => {
+        this.cryptoPrices = data;
+        console.log('Crypto Prices:', this.cryptoPrices);
+        this.updateChartData();
+      },
+      error: (err) => {
+        console.error('Error fetching crypto prices:', err);
+        alert('Failed to fetch crypto prices. Please try again later.');
+      },
+    });
+  }
+  
+  
+  initCryptoChart(theme): void {
     this.cryptoChart = {
       tooltip: {
         show: true,
-        trigger: "axis",
-        backgroundColor: "#fff",
-        extraCssText: "box-shadow: 0 0 3px rgba(0, 0, 0, 0.3); color: #444",
+        trigger: 'axis',
+        backgroundColor: '#fff',
+        extraCssText: 'box-shadow: 0 0 3px rgba(0, 0, 0, 0.3); color: #444',
         axisPointer: {
-          type: "line",
-          animation: true
-        }
+          type: 'line',
+          animation: true,
+        },
       },
       grid: {
-        top: "10%",
-        left: "60",
-        right: "20",
-        bottom: "60"
+        top: '10%',
+        left: '60',
+        right: '20',
+        bottom: '60',
       },
       xAxis: {
-        type: "category",
-        data: [
-          "1",
-          "2",
-          "3",
-          "4",
-          "5",
-          "6",
-          "7",
-          "8",
-          "9",
-          "10",
-          "11",
-          "12",
-          "13",
-          "14",
-          "15",
-          "16",
-          "17",
-          "18",
-          "19",
-          "20",
-          "21",
-          "22",
-          "23",
-          "24",
-          "25",
-          "26",
-          "27",
-          "28",
-          "29",
-          "30"
-        ],
-        axisLine: {
-          show: false
-        },
-        axisLabel: {
-          show: true,
-          margin: 30,
-          color: "#888"
-        },
-        axisTick: {
-          show: false
-        }
+        type: 'category',
+        data: Array.from({ length: 30 }, (_, i) => `${i + 1}`), // Jours
+        axisLine: { show: false },
+        axisLabel: { show: true, margin: 30, color: '#888' },
+        axisTick: { show: false },
       },
       yAxis: {
-        type: "value",
-        axisLine: {
-          show: false
-        },
-        axisLabel: {
-          show: true,
-          margin: 20,
-          color: "#888"
-        },
-        axisTick: {
-          show: false
-        },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            type: "dashed"
-          }
-        }
+        type: 'value',
+        axisLine: { show: false },
+        axisLabel: { show: true, margin: 20, color: '#888' },
+        axisTick: { show: false },
+        splitLine: { show: true, lineStyle: { type: 'dashed' } },
       },
       series: [
         {
-          data: [
-            640,
-            1040,
-            840,
-            1240,
-            1040,
-            1440,
-            1240,
-            1640,
-            1440,
-            1840,
-            1640,
-            2040,
-            1840,
-            2240,
-            2040,
-            2440,
-            2240,
-            2640,
-            2440,
-            2840,
-            2640,
-            3040,
-            2840,
-            3240,
-            3040,
-            3440,
-            3240,
-            3640,
-            3440,
-            3840
-          ],
-          type: "line",
-          name: "Bitcoin",
-          smooth: true,
-          color: tinyColor(theme.baseColor).toString(),
-          lineStyle: {
-            opacity: 1,
-            width: 3
-          },
-          itemStyle: {
-            opacity: 0
-          },
+          data: [], // Bitcoin
+          type: 'line',
+          name: 'Bitcoin',
+          smooth: true, // Ligne fluide
+          color: tinyColor(theme.baseColor).toString(), // Couleur personnalisée
+          lineStyle: { opacity: 1, width: 3 },
+          itemStyle: { opacity: 0 },
           emphasis: {
             itemStyle: {
               color: tinyColor(theme.baseColor).toString(),
-              borderColor: tinyColor(theme.baseColor).setAlpha(.4).toString(),
+              borderColor: tinyColor(theme.baseColor).setAlpha(0.4).toString(),
               opacity: 1,
-              borderWidth: 8
+              borderWidth: 8,
             },
-            label: {
-              show: false,
-              backgroundColor: "#fff"
-            }
-          }
+          },
         },
         {
-          data: [
-            240,
-            640,
-            440,
-            840,
-            640,
-            1040,
-            840,
-            1240,
-            1040,
-            1440,
-            1240,
-            1640,
-            1440,
-            1840,
-            1640,
-            2040,
-            1840,
-            2240,
-            2040,
-            2440,
-            2240,
-            2640,
-            2440,
-            2840,
-            2640,
-            3040,
-            2840,
-            3240,
-            3040,
-            3440
-          ],
-          type: "line",
-          name: "Ethereum (ETH)",
+          data: [], // Ethereum
+          type: 'line',
+          name: 'Ethereum',
           smooth: true,
-          color: "rgba(0, 0, 0, .3)",
-          lineStyle: {
-            opacity: 1,
-            width: 3
-          },
-          itemStyle: {
-            opacity: 0
-          },
+          color: 'rgba(0, 0, 0, .3)',
+          lineStyle: { opacity: 1, width: 3 },
+          itemStyle: { opacity: 0 },
           emphasis: {
             itemStyle: {
-              color: "rgba(0, 0, 0, .5)",
-              borderColor: "rgba(0, 0, 0, .2)",
+              color: 'rgba(0, 0, 0, .5)',
+              borderColor: 'rgba(0, 0, 0, .2)',
               opacity: 1,
-              borderWidth: 8
+              borderWidth: 8,
             },
-            label: {
-              show: false,
-              backgroundColor: "#fff"
-            }
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
+  }
+  
+  updateChartData(): void {
+    if (this.cryptoPrices) {
+      const bitcoinPrice = this.cryptoPrices.bitcoin.usd || 0;
+      const ethereumPrice = this.cryptoPrices.ethereum.usd || 0;
+  
+      // Générer des variations spécifiques pour Bitcoin
+      this.cryptoChart.series[0].data = Array.from({ length: 30 }, (_, i) => 
+        bitcoinPrice + Math.sin(i) * 2000 + Math.random() * 1000
+      );
+  
+      // Générer des variations spécifiques pour Ethereum
+      this.cryptoChart.series[1].data = Array.from({ length: 30 }, (_, i) => 
+        ethereumPrice + Math.cos(i) * 1500 + Math.random() * 500
+      );
+  
+      console.log('Bitcoin Data:', this.cryptoChart.series[0].data);
+      console.log('Ethereum Data:', this.cryptoChart.series[1].data);
+  
+      // Forcer la mise à jour du graphique
+      this.cryptoChart = { ...this.cryptoChart };
+    }
+  }
+  
+  
+  
+
+  calculateChangePercentage(currentPrice: number, previousPrice: number): number {
+    if (!currentPrice || !previousPrice) return 0;
+    return ((currentPrice - previousPrice) / previousPrice) * 100;
   }
 }

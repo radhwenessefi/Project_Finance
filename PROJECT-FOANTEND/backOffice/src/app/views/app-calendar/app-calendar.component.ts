@@ -64,6 +64,7 @@ export class AppCalendarComponent implements OnInit {
     return events.map((event) => {
       const duration = this.getEventDuration(event.eventStartDate, event.eventEndDate);
       return {
+        _id: event.id,
         id: event.id, // Backend event ID
         start: new Date(event.eventStartDate), // Map start date
         end: new Date(event.eventEndDate), // Map end date
@@ -119,8 +120,8 @@ export class AppCalendarComponent implements OnInit {
           return;
         }
 
-        this.calendarService.deleteEvent(event._id).subscribe((events) => {
-          this.events = this.initEvents(events);
+        this.eventService.deleteEvent(event._id).subscribe((events) => {
+           this.loadEvents();
           this.refresh.next(1);
         });
       });
@@ -141,8 +142,18 @@ export class AppCalendarComponent implements OnInit {
       }
       let dialogAction = res.action;
       let responseEvent = res.event;
-      this.calendarService.addEvent(responseEvent).subscribe((events) => {
-        this.events = this.initEvents(events);
+      console.log("response: ",responseEvent)
+      this.eventService.createEvent({
+        eventTitle: responseEvent.title,
+        eventType: responseEvent.eventType,
+        description: responseEvent.meta.notes,
+        eventStartDate: responseEvent.start,
+        eventEndDate: responseEvent.end,
+        maxParticipants: responseEvent.maxParticipants,
+        prizePool: responseEvent.prizePool
+
+      }).subscribe((events) => {
+        this.loadEvents()
         this.refresh.next(true);
       });
     });
@@ -162,10 +173,18 @@ export class AppCalendarComponent implements OnInit {
       }
       let dialogAction = res.action;
       let responseEvent = res.event;
-
+      console.log("responseUpdate:",responseEvent)
       if (dialogAction === 'save') {
-        this.calendarService.updateEvent(responseEvent).subscribe((events) => {
-          this.events = this.initEvents(events);
+        this.eventService.updateEvent(responseEvent._id, {
+          eventTitle: responseEvent.title,
+          eventType: responseEvent.eventType,
+          description: responseEvent.meta.notes,
+          eventStartDate: responseEvent.start,
+          eventEndDate: responseEvent.end,
+          maxParticipants: responseEvent.maxParticipants,
+          prizePool: responseEvent.prizePool
+  }).subscribe((events) => {
+          this.loadEvents()
           this.refresh.next(1);
         });
       } else if (dialogAction === 'delete') {

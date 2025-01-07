@@ -28,4 +28,13 @@ public class TradeController {
         List<Tradee> trades = tradeeRepository.findAll();
         return ResponseEntity.ok(trades);
     }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Tradee>> getTradesByUserId(@PathVariable Long userId) {
+        List<Tradee> trades = tradeeRepository.findByUserId(userId);
+        if (trades.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Return 204 No Content if no trades are found
+        }
+        return ResponseEntity.ok(trades); // Return 200 OK with the list of trades
+    }
+
 }

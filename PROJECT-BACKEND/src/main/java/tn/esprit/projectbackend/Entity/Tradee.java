@@ -30,5 +30,8 @@ public class Tradee {
     Double profit; // Profit or loss from the trade
 
     @Column(nullable = false)
+    Double amount;
+
+    @Column(nullable = false)
     LocalDateTime tradeDate; // Date of the trade
 }
