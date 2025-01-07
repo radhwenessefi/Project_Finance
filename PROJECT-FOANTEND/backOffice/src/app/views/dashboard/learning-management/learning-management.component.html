@@ -14,6 +14,7 @@
           <mat-card class="p-4" [@animate]="{ value: '*', params: { y: '50px', delay: '400ms' } }">
             <h5>Profit for {{ selectedUser?.username || 'No User Selected' }}</h5>
             <div *ngIf="loading">Loading trades...</div>
+            <div *ngIf="!loading && results.length == 0">No trades yet</div>
             <div *ngIf="!loading && results.length > 0">
 
             <div class="flex justify-between items-baseline" *ngFor="let r of results">

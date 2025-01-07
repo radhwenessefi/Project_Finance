@@ -125,6 +125,8 @@ export class LearningManagementComponent implements OnInit {
   }
   onUserSelected(user: any): void {
     this.selectedUser = user;
+    this.results = []
+    this.updateChart({groupedData:[]});
     this.fetchTradesByUserId(user.id);
     this.tradeForm.get('userId')?.setValue(user.id);
     this.loadEvents();
@@ -239,8 +241,8 @@ export class LearningManagementComponent implements OnInit {
           trades.map(async (trade: any) => {
             const assetName = trade.asset.assetName;
             const price = await this.fetchAssetPriceForTrade(assetName);
-            const completed = price > 0 ? (trade.profit-trade.amount/price).toFixed(2) : 0;
-  
+            const completed = price > 0 ? ((trade.amount/price)-trade.profit)/trade.profit*100 : 0;
+        
             return {
               name: assetName,
               color: 'primary',
