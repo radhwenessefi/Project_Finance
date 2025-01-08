@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import tn.esprit.projectbackend.Entity.Event;
 import tn.esprit.projectbackend.Entity.EventType;
 import tn.esprit.projectbackend.Entity.User;
+import tn.esprit.projectbackend.Entity.UserRankingDTO;
 import tn.esprit.projectbackend.Service.EventService;
 
 import java.time.LocalDateTime;
@@ -83,8 +84,8 @@ public class EventController {
 
     // Get rankings for an event
     @GetMapping("/{id}/rankings")
-    public ResponseEntity<Map<Long, Double>> getEventRankings(@PathVariable Long id) {
-        Map<Long, Double> rankings = eventService.calculateRankings(id);
+    public ResponseEntity<List<UserRankingDTO>> getEventRankings(@PathVariable Long id) {
+        List<UserRankingDTO> rankings = eventService.calculateRankings(id);
         return ResponseEntity.ok(rankings);
     }
 

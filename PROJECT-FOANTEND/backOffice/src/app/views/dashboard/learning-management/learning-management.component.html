@@ -143,8 +143,9 @@
           <div class="flex items-center flex-grow">
             <mat-icon class="mr-2 rtl:ml-2">{{ eventTypeIcons[event.type] }}</mat-icon>
             <div>
-              <h6 class="mb-1">{{ event.title }}</h6>
-              <small class="text-muted">{{ event.date }}</small>
+              <h6 class="mb-1 text-primary cursor-pointer" (click)="openRankingPopup(event.id)">
+                {{ event.title }}
+              </h6>              <small class="text-muted">{{ event.date }}</small>
             </div>
           </div>
           <button

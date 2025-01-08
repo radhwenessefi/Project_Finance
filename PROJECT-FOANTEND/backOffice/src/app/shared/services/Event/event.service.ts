@@ -14,7 +14,10 @@ export class EventService {
   getAllEvents(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/all`);
   }
-
+  getEventRankings(eventId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${eventId}/rankings`);
+  }
+  
   // Récupérer un événement par ID
   getEventById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);

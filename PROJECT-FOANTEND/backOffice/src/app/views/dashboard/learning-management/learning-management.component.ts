@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { EventRankingPopupComponent } from 'app/event-ranking-popup/event-ranking-popup.component';
 import { ResourcePopupComponent } from 'app/resource-popup/resource-popup.component';
 import { ResourceService } from 'app/Resource/resource.service';
 import { egretAnimations } from 'app/shared/animations/egret-animations';
@@ -229,7 +230,17 @@ cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
     this.studyChart.series = series;
     this.studyChart.chartOptions.colors = colors;
   }
-
+  openRankingPopup(eventId: number): void {
+    this.eventService.getEventRankings(eventId).subscribe({
+      next: (rankings: any[]) => {
+        this.dialog.open(EventRankingPopupComponent, {
+          width: '600px',
+          data: { rankings }
+        });
+      },
+      error: (err) => console.error('Error fetching rankings:', err)
+    });
+  }
   generateColor(index: number): string {
     const colors = ['#0081FF', '#E95455', '#E97D23', '#3AB54A', '#8A2BE2'];
     return colors[index % colors.length];

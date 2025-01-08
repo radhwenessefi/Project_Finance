@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import tn.esprit.projectbackend.Entity.Event;
 import tn.esprit.projectbackend.Entity.EventType;
 import tn.esprit.projectbackend.Entity.User;
+import tn.esprit.projectbackend.Entity.UserRankingDTO;
 import tn.esprit.projectbackend.Repository.EventRepository;
 import tn.esprit.projectbackend.Repository.TradeeRepository;
 import tn.esprit.projectbackend.Repository.UserRepository;
@@ -96,22 +97,34 @@ public class EventService {
     }
 
     // Calculate rankings for an event
-    public Map<Long, Double> calculateRankings(Long eventId) {
+    public List<UserRankingDTO> calculateRankings(Long eventId) {
+        // Retrieve the event by ID
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        Map<Long, Double> rankings = new HashMap<>();
+        // Create a list to hold the UserRankingDTO
+        List<UserRankingDTO> rankings = new ArrayList<>();
+
         for (User participant : event.getParticipants()) {
+            // Calculate profit for each user during the event's time period
             Double profit = tradeeRepository.calculateProfitForUser(
                     participant.getId(), event.getEventStartDate(), event.getEventEndDate());
-            rankings.put(participant.getId(), profit == null ? 0.0 : profit);
+
+            // Add the UserRankingDTO to the list
+            rankings.add(new UserRankingDTO(
+                    participant.getUsername(),          // User's first name
+                    participant.getId(),            // User's ID
+                    profit == null ? 0.0 : profit   // Profit, default to 0.0 if null
+            ));
         }
 
-        return rankings.entrySet().stream()
-                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
+        // Sort the rankings by profit in descending order
+        return rankings.stream()
+                .sorted(Comparator.comparingDouble(UserRankingDTO::getProfit).reversed())
+                .collect(Collectors.toList());
     }
+
+
 
 
     // Award a winner for an event

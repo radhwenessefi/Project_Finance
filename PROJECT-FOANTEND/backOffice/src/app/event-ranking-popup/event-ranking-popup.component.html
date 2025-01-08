@@ -1,0 +1,22 @@
+<div mat-dialog-content class="ranking-popup">
+    <h3 class="popup-title">🏆 Top Rankings 🏆</h3>
+    <div class="podium">
+      <div *ngIf="topThree[1]" class="podium-spot second">
+        <h4>{{ topThree[1].name }} {{ topThree[1].lastName }}</h4>
+        <p class="profit">💰 {{ topThree[1].profit | currency }}</p>
+      </div>
+      <div *ngIf="topThree[0]" class="podium-spot first">
+        <h4>{{ topThree[0].name }} {{ topThree[0].lastName }}</h4>
+        <p class="profit">💰 {{ topThree[0].profit | currency }}</p>
+      </div>
+      <div *ngIf="topThree[2]" class="podium-spot third">
+        <h4>{{ topThree[2].name }} {{ topThree[2].lastName }}</h4>
+        <p class="profit">💰 {{ topThree[2].profit | currency }}</p>
+      </div>
+    </div>
+    <h3 class="popup-title">Remaining Rankings</h3>
+    <div *ngFor="let user of remainingRankings" class="remaining-user">
+      <p>{{ user.name }} {{ user.lastName }} - 💰 {{ user.profit | currency }}</p>
+    </div>
+  </div>
+  
