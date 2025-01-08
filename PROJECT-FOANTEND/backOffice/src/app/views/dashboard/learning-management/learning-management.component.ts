@@ -80,12 +80,16 @@ export class LearningManagementComponent implements OnInit {
   reminders = [ /* ... existing reminders ... */ ];
   resources = [];
   public events: [];
+  ethereumPrice: number
+  bitcoinPrice: number
+  litecoinPrice:number
   resourceTypeIcons: { [key: string]: string } = {
     VIDEO: 'play_circle', // Icon for videos
     PDF: 'picture_as_pdf', // Icon for PDFs
     ARTICLE: 'description', // Icon for articles
     TOOL: 'build', // Icon for tools
   };
+  prices= {}
   constructor(  private dialog: MatDialog,    private tradeeService: TradeService, private fb: FormBuilder, private http: HttpClient, private eventService: EventService, private resourceService: ResourceService) {}
   openCreateResourcePopup(): void {
     const dialogRef = this.dialog.open(ResourcePopupComponent, {
@@ -253,9 +257,10 @@ cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
       next: async (trades) => {
         const updatedResults = await Promise.all(
           trades.map(async (trade: any) => {
-            const assetName = trade.asset.assetName;
-            const price = await this.fetchAssetPriceForTrade(assetName);
-            const completed = price > 0 ? (((trade.amount/price)-trade.profit)/trade.profit)*100 : 0;
+            const assetName = trade.asset.assetName.toLowerCase();
+                        const price = this.prices[assetName];
+                        console.log('Asset Name:', assetName, 'Price:', price, 'Prices:', this.prices); // Debugging
+                        const completed = price > 0 ? (((trade.amount/price)-trade.profit)/trade.profit)*100 : 0;
         
             return {
               name: assetName,
@@ -307,10 +312,23 @@ cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
       });
     });
   }
+  fetchAssetPrices(): Promise<void> {
+    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,litecoin,ethereum&vs_currencies=usd`;
+  
+    return this.http.get(apiUrl).toPromise().then((data: any) => {
+      this.prices["bitcoin"] = data["bitcoin"]?.usd || 0;
+      this.prices["litecoin"] = data["litecoin"]?.usd || 0;
+      this.prices["ethereum"] = data["ethereum"]?.usd || 0;
+      console.log('Prices fetched:', this.prices); // For debugging
+    }).catch((error) => {
+      console.error('Error fetching asset prices:', error);
+    });
+  }
   
   
 
   ngOnInit(): void {
+    this.fetchAssetPrices()
     this.tradeForm = this.fb.group({
       userId: [null, Validators.required],
       asset: ['', Validators.required],
