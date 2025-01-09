@@ -1,0 +1,11 @@
+
+o	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(öÕã
+l	java:S116"WRename this field "PolicyNumber" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(îøÜİ
+p	java:S116"[Rename this field "PolicyHolderName" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(×Àş¯
+i	java:S116"TRename this field "StartDate" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(·óÔÎ
+l	java:S116"RRename this field "EndDate" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÂñÊéıÿÿÿÿ
+m	java:S116 "XRename this field "InsuranceType" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¶°©™
+q	java:S116!"]Rename this field "ContributionAmount" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(šò D
+n	java:S116""YRename this field "CoverageAmount" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ƒ„Á¯
+o	java:S116#"ZRename this field "InsuranceStatus" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÄÁæ
+j	java:S116$"PRename this field "Agent" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ûé’üÿÿÿÿ

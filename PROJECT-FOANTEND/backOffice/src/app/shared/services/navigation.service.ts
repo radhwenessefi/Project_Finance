@@ -57,9 +57,9 @@ export class NavigationService {
       sub: [
         { name: 'Analytics', state: 'dashboard/analytics' },
         { name: 'Learning Management', state: 'dashboard/learning-management' },
-        { name: 'Analytics Alt', state: 'dashboard/analytics-alt' },
-        { name: 'Cryptocurrency', state: 'dashboard/crypto' },
-        { name: 'Dark Cards', state: 'dashboard/dark' },
+        { name: 'Crypto', state: 'dashboard/analytics-alt' },
+        { name: 'Analytics', state: 'dashboard/crypto' },
+        { name: 'Forex', state: 'dashboard/dark' },
       ]
     },
     {

@@ -21,10 +21,13 @@ import { SharedModule } from '../../shared/shared.module';
 import { TablesService } from './tables.service';
 import { TablesRoutes } from './tables.routing';
 import { MaterialTableComponent } from './material-table/material-table.component';
-
+ import { FormsModule } from '@angular/forms';
+ import { MatSelectModule } from '@angular/material/select';
 @NgModule({
   imports: [
     CommonModule,
+    MatSelectModule,
+    FormsModule,
     ReactiveFormsModule,
     MatInputModule,
     MatIconModule,

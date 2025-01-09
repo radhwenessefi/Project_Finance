@@ -2,6 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { egretAnimations } from 'app/shared/animations/egret-animations';
 import { LayoutService } from 'app/shared/services/layout.service';
 import { MatSnackBar as MatSnackBar } from '@angular/material/snack-bar';
+import { CryptoService } from './cryptoservice/crypto.service';
+import { FormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-analytics-alt',
@@ -10,10 +13,14 @@ import { MatSnackBar as MatSnackBar } from '@angular/material/snack-bar';
   animations: egretAnimations
 })
 export class AnalyticsAltComponent implements OnInit {
-  dailyTrafficChartBar: any;
+  trafficchartbar: any;
   monthlyTrafficChartBar: any;
   dailyBandwithUsage: any;
   trafficGrowthChart: any;
+  range='1'
+  start="2023-01-09"
+  end="2023-01-30"
+  daterange
   countryTrafficStats = [
     {
       country: "US",
@@ -72,10 +79,14 @@ export class AnalyticsAltComponent implements OnInit {
         flag: "flag-icon-ru"
     }
   ];
+
+  newcryptocolumns: string[] = ['v', 'vw', 'o', 'c', 'h'];
+  cryptodata: []
   
   constructor(
     private layout: LayoutService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private cryptoService:CryptoService
   ) {
     
   }
@@ -85,246 +96,8 @@ export class AnalyticsAltComponent implements OnInit {
       // this.layout.publishLayoutChange({sidebarColor: 'dark-blue', topbarColor: 'dark-blue', footerColor: 'dark-blue', matTheme: "egret-navy-dark"});
       // this.snack.open('Layout option changed to {sidebarColor: "dark-blue", topbarColor: "dark-blue", matTheme: "egret-navy-dark"};', 'OK', {duration: 6000})
     });
-
-    this.dailyTrafficChartBar = {
-      legend: {
-        show: false
-      },
-      grid: {
-        left: "8px",
-        right: "8px",
-        bottom: "0",
-        top: "0",
-        containLabel: true
-      },
-      tooltip: {
-        show: true,
-        backgroundColor: "rgba(0, 0, 0, .8)"
-      },
-      xAxis: [
-        {
-          type: "category",
-          // data: ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-          data: ["1", "2", "3", "4", "5", "6", "7"],
-          axisTick: {
-            show: false
-          },
-          splitLine: {
-            show: false
-          },
-          axisLine: {
-            show: false
-          },
-          axisLabel: {
-            color: "#fff"
-          }
-        }
-      ],
-      yAxis: [
-        {
-          type: "value",
-          axisLabel: {
-            show: false,
-            formatter: "${value}"
-          },
-          min: 0,
-          max: 100000,
-          interval: 25000,
-          axisTick: {
-            show: false
-          },
-          axisLine: {
-            show: false
-          },
-          splitLine: {
-            show: false,
-            interval: "auto"
-          }
-        }
-      ],
-
-      series: [
-        {
-          name: "Online",
-          data: [35000, 69000, 22500, 60000, 50000, 50000, 30000],
-          label: { show: false, color: "#0168c1" },
-          type: "bar",
-          barWidth: "8",
-          color: "#f6be1a",
-          smooth: true,
-          itemStyle: {
-            barBorderRadius: 10
-          }
-        }
-      ]
-    };
-    this.monthlyTrafficChartBar = {
-      tooltip: {
-        trigger: "axis",
-
-        axisPointer: {
-          animation: true
-        }
-      },
-      grid: {
-        left: "0",
-        top: "4%",
-        right: "0",
-        bottom: "0"
-      },
-      xAxis: {
-        type: "category",
-        boundaryGap: false,
-        data: [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sept",
-          "Oct",
-          "Nov",
-          "Dec"
-        ],
-        axisLabel: {
-          show: false
-        },
-        axisLine: {
-          lineStyle: {
-            show: false
-          }
-        },
-        axisTick: {
-          show: false
-        },
-        splitLine: {
-          show: false
-        }
-      },
-      yAxis: {
-        type: "value",
-        min: 0,
-        max: 200,
-        interval: 50,
-        axisLabel: {
-          show: false
-        },
-        axisLine: {
-          show: false
-        },
-        axisTick: {
-          show: false
-        },
-        splitLine: {
-          show: false
-        }
-      },
-      series: [
-        {
-          name: "Visit",
-          type: "line",
-          smooth: true,
-          data: [
-            140,
-            135,
-            95,
-            115,
-            95,
-            126,
-            93,
-            145,
-            115,
-            140,
-            135,
-            95,
-            115,
-            95,
-            126,
-            125,
-            145,
-            115,
-            140,
-            135,
-            95,
-            115,
-            95,
-            126,
-            93,
-            145,
-            115,
-            140,
-            135,
-            95
-          ],
-          symbolSize: 8,
-          showSymbol: false,
-          lineStyle: {
-            opacity: 0,
-            width: 0
-          },
-          itemStyle: {
-            borderColor: "#f6be1a"
-          },
-          areaStyle: {
-            color: "#f6be1a",
-            opacity: 1
-          }
-        },
-        {
-          name: "Sales",
-          type: "line",
-          smooth: true,
-          data: [
-            50,
-            70,
-            65,
-            84,
-            75,
-            80,
-            70,
-            50,
-            70,
-            65,
-            104,
-            75,
-            80,
-            70,
-            50,
-            70,
-            65,
-            94,
-            75,
-            80,
-            70,
-            50,
-            70,
-            65,
-            86,
-            75,
-            80,
-            70,
-            50,
-            70
-          ],
-          symbolSize: 8,
-          showSymbol: false,
-          lineStyle: {
-            opacity: 0,
-            width: 0
-          },
-          itemStyle: {
-            borderColor: "#e91f63"
-          },
-          areaStyle: {
-            color: "#e91f63",
-            opacity: 1
-          }
-        }
-      ]
-    };
+    
+    
 
     this.dailyBandwithUsage = {
       grid: {
@@ -496,12 +269,234 @@ export class AnalyticsAltComponent implements OnInit {
         }
       ]
     };
+
+    this.getCryptoDetails('BTC',this.range,this.start,this.end)
+  
+  
+  
   }
+  createtrafficchart(){
+    if(this.cryptodata) {
+    const volumes = this.cryptodata.map(data => data["v"]);
+
+    const xAxisData = this.cryptodata.map((_, index) => (index + 1).toString());
+
+    this.trafficchartbar = {
+  legend: {
+    show: false
+  },
+  grid: {
+    left: "8px",
+    right: "8px",
+    bottom: "0",
+    top: "0",
+    containLabel: true
+  },
+  tooltip: {
+    show: true,
+    backgroundColor: "rgba(0, 0, 0, .8)"
+  },
+  xAxis: [
+    {
+      type: "category",
+      data: xAxisData, // Use the dynamically generated X-axis data
+      axisTick: {
+        show: false
+      },
+      splitLine: {
+        show: false
+      },
+      axisLine: {
+        show: false
+      },
+      axisLabel: {
+        color: "#fff"
+      }
+    }
+  ],
+  yAxis: [
+    {
+      type: "value",
+      axisLabel: {
+        show: false,
+        formatter: "${value}"
+      },
+      min: 0,
+      max: 100000,
+      interval: 25000,
+      axisTick: {
+        show: false
+      },
+      axisLine: {
+        show: false
+      },
+      splitLine: {
+        show: false,
+        interval: "auto"
+      }
+    }
+  ],
+
+  series: [
+    {
+      name: "Volume",
+      data: volumes, // Set the extracted volume data here
+      label: { show: false, color: "#0168c1" },
+      type: "bar",
+      barWidth: "8",
+      color: "#f6be1a",
+      smooth: true,
+      itemStyle: {
+        barBorderRadius: 10
+      }
+    }
+  ]
+};
+}}
+
+  createopenclosedchart(){
+
+    // Extract the open and close prices
+  const openPrices = this.cryptodata.map(data => data["h"]);
+  const closePrices = this.cryptodata.map(data => data["o"]);
+
+  // Generate the X-axis labels dynamically (e.g., ["1", "2", "3", ..., "n"])
+  const xAxisData = this.cryptodata.map((_, index) => (index + 1).toString());
+
+  // Define the chart configuration
+  this.monthlyTrafficChartBar = {
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        animation: true
+      }
+    },
+    grid: {
+      left: "0",
+      top: "0%",    // Reduced top padding for more compactness
+      right: "0",
+      bottom: "0%", // Reduced bottom padding for more compactness
+    },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: xAxisData, // Use the dynamically generated X-axis data
+      axisLabel: {
+        show: true
+      },
+      axisLine: {
+        lineStyle: {
+          show: false
+        }
+      },
+      axisTick: {
+        show: false
+      },
+      splitLine: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: "value",
+      min: 15000,
+      max: 30000, // Adjust based on your price data range
+      interval: 5000,
+      axisLabel: {
+        show: true
+      },
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      splitLine: {
+        show: false
+      }
+    },
+    series: [
+      {
+        name: "highest Price",
+        type: "line",
+        smooth: true,
+        data: openPrices, // Use the open prices
+        symbolSize: 8,
+        showSymbol: false,
+        lineStyle: {
+          opacity: 0.8,
+          width: 2
+        },
+        itemStyle: {
+          borderColor: "#f6be1a"
+        },
+        areaStyle: {
+          color: "#f6be1a",
+          opacity: 0.5
+        }
+      },
+      {
+        name: "open Price",
+        type: "line",
+        smooth: true,
+        data: closePrices, // Use the close prices
+        symbolSize: 8,
+        showSymbol: false,
+        lineStyle: {
+          opacity: 0.8,
+          width: 2
+        },
+        itemStyle: {
+          borderColor: "#e91f63"
+        },
+        areaStyle: {
+          color: "#e91f63",
+          opacity: 0.5
+        }
+      }
+    ]
+  };
+  
+   
+}
+  applyFilters(range: string, start: string, end: string) {
+    if (range && start && end) {
+      this.range = range;
+      this.start = start;
+      this.end = end;
+      const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Calculate the difference in time (in milliseconds)
+    const timeDifference = endDate.getTime() - startDate.getTime();
+
+    // Convert the time difference to days (milliseconds to days)
+       this.daterange = timeDifference / (1000 * 3600 * 24);
+  
+      this.getCryptoDetails('BTC', this.range, this.start, this.end);
+    } else {
+      console.log('Please fill in all fields.');
+    }
+  }
+  
+
+
+  getCryptoDetails(symbol: string,range:string,start:string,end:string): void {
+    this.cryptoService.getCryptoData(symbol,range,start,end).subscribe({
+      next: (data) => {
+        this.cryptodata = data.results;
+        console.log('Crypto data:', this.cryptodata);
+        this.createtrafficchart()
+        this.createopenclosedchart()
+      },
+      error: (err) => {
+        console.error('Error fetching crypto data:', err);
+      },
+    });
+  }
+
   ngOnDestroy() {
     setTimeout(() => {
-      // this.layout.publishLayoutChange({sidebarColor: 'slate', topbarColor: 'white', footerColor: 'slate', matTheme: "egret-navy"});
-      // this.snack.open('Layout option changed {sidebarColor: "black", topbarColor: "white"};', 'OK', {duration: 6000})
-
+      
     });
   }
 }

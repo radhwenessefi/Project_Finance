@@ -36,7 +36,8 @@
               "dom-set",
               "moment",
               "apexcharts",
-              "quill"
+              "quill",
+              "quill-delta" 
             ],
             "outputPath": "dist",
             "index": "src/index.html",

@@ -37,6 +37,10 @@ public class PortfolioInvestment {
     @Enumerated(EnumType.STRING)
     OrderType orderType;
 
+
     @ManyToOne
-    Portfolio portfolios ;
+    @JoinColumn(name = "portfolio_id")
+    private Portfolio portfolios; // Le portefeuille auquel cet investissement appartient
+
+
 }

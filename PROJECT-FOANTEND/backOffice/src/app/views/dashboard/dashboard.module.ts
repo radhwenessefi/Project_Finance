@@ -15,6 +15,7 @@ import { RouterModule } from '@angular/router';
 import { NgChartsModule } from 'ng2-charts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import * as echarts from 'echarts';
+import { FormsModule } from '@angular/forms';
 
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { SharedPipesModule } from '../../shared/pipes/shared-pipes.module';
@@ -31,6 +32,7 @@ import { AnalyticsAltComponent } from './analytics-alt/analytics-alt.component';
   imports: [
     CommonModule,
     MatIconModule,
+    FormsModule,
     MatCardModule,
     MatMenuModule,
     MatProgressBarModule,
@@ -54,8 +56,8 @@ import { AnalyticsAltComponent } from './analytics-alt/analytics-alt.component';
     DashboardDarkComponent,
     CryptocurrencyComponent,
     DefaultDashboardComponent,
-    LearningManagementComponent,
-    AnalyticsAltComponent],
+    LearningManagementComponent,    
+    AnalyticsAltComponent],       
   exports: []
 })
 export class DashboardModule {

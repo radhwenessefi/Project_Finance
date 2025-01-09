@@ -14,7 +14,8 @@ import { Subscription } from 'rxjs';
 import { PredictionPopupComponent } from './prediction-popup/prediction-popup.component';
 import { UpdatePopupComponent } from 'app/views/cruds/crud-ngx-table/update-popup/update-popup.component';
 
-
+import { FormsModule } from '@angular/forms';
+import { StrategyService } from './service/strategy.service';
 
 
 
@@ -30,15 +31,20 @@ export class MaterialTableComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
   public getItemSub: Subscription;
-  displayedColumns: string[] = [];
+  displayedColumns: string[] = ['key', 'value'];
   dataSource: any;
   data: any;
   predictionValue: any;
-
+  amount: number = 0; // Default value for amount
+  margin: number = 0;  // Default value for margin
+  strategy: number = 1;
+  strategyStats:any
+  objectKeys = Object.keys;
+  
   constructor(private tableService: TablesService,
     private dialog: MatDialog,
     private snack: MatSnackBar,
-   
+    private strategyService :StrategyService,
     private confirmService: AppConfirmService,
     private loader: AppLoaderService,
     @Inject(PortfolioService) private portfolioService: PortfolioService
@@ -48,18 +54,29 @@ export class MaterialTableComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.displayedColumns = this.getDisplayedColumns();
+    
     this.getItems()
+    this.displayedColumns = Object.keys(this.strategyStats);
 
   }
+  onStrategyChange() {
+    this.strategyService.getStrategyStats(this.amount, this.margin, this.strategy)
+      .subscribe({
+        next: (response) => {
+          this.strategyStats = response;  
+          console.log('Strategy stats:', this.strategyStats);
+        },
+        error: (error) => {
+          console.error('Error calling API:', error);  // Handle error
+        }
+      });
+  }
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
-  getDisplayedColumns() {
-    //return ['name', 'age', 'balance', 'company', 'status', 'actions'];
-    return ['Symbol', 'OrderType','Amount', 'TakeProfit', 'StopLoss', 'Date', 'actions', 'prediction'];
-  }
+  
   getItems() {    
     this.getItemSub = this.tableService.getItems()
       .subscribe(data => {

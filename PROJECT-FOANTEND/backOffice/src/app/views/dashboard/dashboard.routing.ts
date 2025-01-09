@@ -33,6 +33,6 @@ export const DashboardRoutes: Routes = [
   {
     path: 'dark',
     component: DashboardDarkComponent,
-    data: { title: 'Dark Cards', breadcrumb: 'Dark Cards' }
+    data: { title: 'Forex', breadcrumb: 'Forex' }
   }
 ];
